@@ -1,0 +1,8 @@
+{
+	"name" : "Validate E-mail Address (DN)",
+	"from" : "noreply@desktopnexus.com",
+	"reply_to" : "noreply@desktopnexus.com",
+	"subject" : "Action needed to activate your account!",
+	"required_vars" : [],
+	"content_view" : ""
+ }

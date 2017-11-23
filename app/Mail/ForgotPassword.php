@@ -1,0 +1,17 @@
+<?php
+
+namespace App\Mail;
+
+use Illuminate\Bus\Queueable;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Contracts\Queue\ShouldQueue;
+
+class ForgotPassword extends \App\Mail\Clickagy\Mailable 
+{
+    use Queueable, SerializesModels;
+
+    protected $_blastIds = [
+        'dn' => '66vqjlqjx51ug'
+    ];
+    
+}
