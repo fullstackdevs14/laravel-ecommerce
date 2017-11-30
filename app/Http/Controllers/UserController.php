@@ -6,6 +6,7 @@ use App\User;
 use App\ImageModel;
 use App\Models\User\User_oAuth;
 use App\Models\User\User_Email;
+use App\Models\User\User_Follow;
 use App\Models\Image\Post;
 use App\Models\Image\Image_comment;
 use App\Models\Image\Image_View;
@@ -233,6 +234,9 @@ class UserController extends Controller {
 		{
 			$user_ignore = User_Ignore::where('user_id', $user->id)->where('banned_id', $visitor['id'])->get();	
 			if(count($user_ignore) != 0) $is_ban = 1;
+			$user['isFollowed'] = User_Follow::where('user_id', $visitor['id'])
+			->where('follower_id', $user->id)
+			->count('user_id');
 		}
 
 		$follow['following'] = User::join('user_follows','user_follows.user_id','=','users.id')
@@ -1000,6 +1004,33 @@ class UserController extends Controller {
 
 		return Response()->json([
 			"result" => $user_email
+			], 200);
+	}
+
+	public function getConnections(Request $request) {
+		$user_id = $request->input('user_id');
+		$filter = $request->input('filter');
+
+		$followers = User_Follow::join('users', 'users.id', '=', 'user_follows.user_id')
+		->where('follower_id', $user_id)
+		->whereRaw("concat(`users`.`firstname`, ' ', `users`.`lastname`) like '".$filter."%'")
+		->select('users.id', 'users.avatar', 'users.firstname', 'users.lastname')
+		->limit(5)->get();
+		$following = User_Follow::join('users', 'users.id', '=', 'user_follows.follower_id')
+		->where('user_id', $user_id)
+		->whereRaw("concat(`users`.`firstname`, ' ', `users`.`lastname`) like '".$filter."%'")
+		->select('users.id', 'users.avatar', 'users.firstname', 'users.lastname')
+		->limit(5)->get();
+
+		if (is_array($followers) && is_array($following))
+			$connections = array_merge($followers, $following);
+		else if (is_array($followers))
+			$connections = $followers;
+		else
+			$connections = $following;
+
+		return Response()->json([
+			"result" => $connections
 			], 200);
 	}
 }

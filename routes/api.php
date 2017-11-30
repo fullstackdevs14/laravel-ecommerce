@@ -302,3 +302,7 @@ Route::post('/user/setprimary', [
 Route::post('/image/gettagcloud', [
 	'uses' => 'ImageController@getTagCloud'
 ]);
+
+Route::post('/user/connections', [
+	'uses' => 'UserController@getConnections'
+]);
