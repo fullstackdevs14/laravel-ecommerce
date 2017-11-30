@@ -1013,12 +1013,12 @@ class UserController extends Controller {
 
 		$followers = User_Follow::join('users', 'users.id', '=', 'user_follows.user_id')
 		->where('follower_id', $user_id)
-		->whereRaw("concat(`users`.`firstname`, ' ', `users`.`lastname`) like '".$filter."%'")
+		->whereRaw("lower(concat(`users`.`firstname`, ' ', `users`.`lastname`)) like lower('%".$filter."%')")
 		->select('users.id', 'users.avatar', 'users.firstname', 'users.lastname')
 		->limit(5)->get();
 		$following = User_Follow::join('users', 'users.id', '=', 'user_follows.follower_id')
 		->where('user_id', $user_id)
-		->whereRaw("concat(`users`.`firstname`, ' ', `users`.`lastname`) like '".$filter."%'")
+		->whereRaw("lower(concat(`users`.`firstname`, ' ', `users`.`lastname`)) like lower('%".$filter."%')")
 		->select('users.id', 'users.avatar', 'users.firstname', 'users.lastname')
 		->limit(5)->get();
 
@@ -1030,7 +1030,11 @@ class UserController extends Controller {
 			$connections = $following;
 
 		return Response()->json([
-			"result" => $connections
+			"result" => $connections,
+			"user" => $user_id,
+			"filter" => $filter,
+			"follwers" => $followers,
+			"following" => $following
 			], 200);
 	}
 }
