@@ -1009,17 +1009,17 @@ class UserController extends Controller {
 
 	public function getConnections(Request $request) {
 		$user_id = $request->input('user_id');
-		$filter = $request->input('filter');
+		$filter = strtolower($request->input('filter'));
 
 		$followers = User_Follow::join('users', 'users.id', '=', 'user_follows.user_id')
 		->where('follower_id', $user_id)
-		->whereRaw("lower(concat(`users`.`firstname`, ' ', `users`.`lastname`)) like lower('%".$filter."%')")
-		->select('users.id', 'users.avatar', 'users.firstname', 'users.lastname')
+		->whereRaw("(lower(concat(`users`.`firstname`, ' ', `users`.`lastname`)) like '%".$filter."%' or lower(`users`.`username`) like '%".$filter."%')")
+		->select('users.id', 'users.avatar', 'users.firstname', 'users.lastname', 'users.username')
 		->limit(5)->get();
 		$following = User_Follow::join('users', 'users.id', '=', 'user_follows.follower_id')
 		->where('user_id', $user_id)
-		->whereRaw("lower(concat(`users`.`firstname`, ' ', `users`.`lastname`)) like lower('%".$filter."%')")
-		->select('users.id', 'users.avatar', 'users.firstname', 'users.lastname')
+		->whereRaw("(lower(concat(`users`.`firstname`, ' ', `users`.`lastname`)) like '%".$filter."%' or lower(`users`.`username`) like '%".$filter."%')")
+		->select('users.id', 'users.avatar', 'users.firstname', 'users.lastname', 'users.username')
 		->limit(5)->get();
 
 		if (is_array($followers) && is_array($following))
@@ -1031,10 +1031,6 @@ class UserController extends Controller {
 
 		return Response()->json([
 			"result" => $connections,
-			"user" => $user_id,
-			"filter" => $filter,
-			"follwers" => $followers,
-			"following" => $following
 			], 200);
 	}
 }
