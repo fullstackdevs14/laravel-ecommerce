@@ -123,7 +123,6 @@ class ImageController extends Controller
         {
             // recreate cache file
             $url = $s3->get($image->s3_id);
-            return $image->s3_id;
             $retval = new \Imagick();
             $retval->readImageBlob($url);
             
