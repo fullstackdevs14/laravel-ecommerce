@@ -123,13 +123,16 @@ class ImageController extends Controller
         {
             // recreate cache file
             $url = $s3->get($image->s3_id);
+            return $image->s3_id;
             $retval = new \Imagick();
             $retval->readImageBlob($url);
             
             // create Entropy cropping object  
             $entropy_image = $retval;
+
             $cropper = new CropEntropy($entropy_image);
             $cache_photo = $cropper->resizeAndCrop($width, $height);
+            $cache_photo->setImageFormat('png');
 
             if(!$cache_photo) {
                 throw new \Exception("Failed to resize image");
@@ -2185,10 +2188,15 @@ class ImageController extends Controller
      */
     public function getTagcloud()
     {
+        $tag_limit = env('TAG_CLOUD_LIMIT');
         $tags = DB::table('tags')
         ->join('image_tags', 'tags.id', '=', 'image_tags.tag_id')
         ->join('images', 'images.id', '=', 'image_tags.image_id')
-        ->select('tags.name','tags.slug',DB::raw('sum(images.downloads) as sum'))->groupBy('tags.name')->orderBy('tags.created_at', 'desc')->get();
+        ->select('tags.name','tags.slug',DB::raw('sum(images.downloads) as sum'))
+        ->groupBy('tags.name')
+        ->orderBy('tags.created_at', 'desc')
+        ->limit($tag_limit)
+        ->get();
 
         $max = 0;
         $min = 0;

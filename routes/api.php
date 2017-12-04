@@ -306,3 +306,7 @@ Route::post('/image/gettagcloud', [
 Route::post('/user/connections', [
 	'uses' => 'UserController@getConnections'
 ]);
+
+Route::post('contactus', [
+	'uses' => 'UserController@contactUs'
+]);

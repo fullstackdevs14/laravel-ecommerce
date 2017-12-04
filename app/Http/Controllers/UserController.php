@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\User;
 use App\ImageModel;
+use App\Models\Group;
 use App\Models\User\User_oAuth;
 use App\Models\User\User_Email;
 use App\Models\User\User_Follow;
@@ -21,7 +22,7 @@ use Illuminate\Support\Facades\Storage;
 use JWTAuth;
 use Mail;
 use App\Mail\ConfirmationEmail;
-
+use App\Mail\ContactUs;
 use Intervention\Image\ImageManagerStatic as Image;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -294,6 +295,20 @@ class UserController extends Controller {
 		]);	
 	}
 
+	public function getSlugFromArray($arr)
+	{
+		$buffer = explode(",", $arr);
+		$new_array = collect();
+		foreach ($buffer as $item) {
+			$query = Group::where("name", $item)
+					->select('slug')
+					->first();
+			$temp['name'] = $item;
+			$temp['slug'] = $query['slug'];
+			$new_array->push($temp);
+		}
+		return $new_array;
+	}
 	/*
 	**
 		get activity lists based on user ID
@@ -334,6 +349,7 @@ class UserController extends Controller {
 			$thumb_filename = substr_replace($filename, "-bigthumbnail", $index, 0);
 			$item['s3_id'] = $thumb_filename;
 			$item['now'] = $this->now($item->created_at);
+			$item['list'] = $this->getSlugFromArray($item->list);
 			if($offset>0) $item['flag'] = 1;
 			$all->push($item);
 		}
@@ -685,7 +701,6 @@ class UserController extends Controller {
 		$user = User::find($request->input('user_id'))->first();
 		$user->firstname = $request->input('first');
 		$user->lastname = $request->input('last');
-		$user->email = $request->input('email');
 		$user->save();
 		return Response()->json([
 			"result" => $user
@@ -1032,5 +1047,23 @@ class UserController extends Controller {
 		return Response()->json([
 			"result" => $connections,
 			], 200);
+	}
+
+	public function contactUs(Request $request) {
+		$name = $request->input('name');
+		$email = $request->input('email');
+		$text = $request->input('text');
+		// create invite template
+        $validateEmail = new ContactUs();
+        // message body
+        $content = $name;
+        $content.= " requests some query about <a href='https://www.desktopnexus.com'>DesktopNexus.com</a>";
+        // send email
+        $validateEmail->to($email, $name)
+        ->setViewData([
+            'FNAME' => $name,
+            'CONTENT' => $text
+            ]);
+        Mail::queue($validateEmail);
 	}
 }
