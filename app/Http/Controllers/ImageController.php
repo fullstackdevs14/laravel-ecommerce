@@ -171,6 +171,7 @@ class ImageController extends Controller
 
             $originName = $photo->getClientOriginalName();
             $title = explode('.', $originName)[0];
+            $title = ucwords(preg_replace('/[_-]/', ' ', $title));
             $file_size = $photo->getClientSize();
 
             $filename = time() . "." . $photo->getClientOriginalExtension();
@@ -362,6 +363,7 @@ class ImageController extends Controller
 
             $originName = substr($url, strrpos($url, '/') + 1);
             $title = explode('.', $originName)[0];
+            $title = ucwords(preg_replace('/[_-]/', ' ', $title));
             $file_size = getimagesize($url);
 
 
