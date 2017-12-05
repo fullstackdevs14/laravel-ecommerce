@@ -83,6 +83,14 @@ Route::post('image/creategroup', [
 	'uses' => 'ImageController@createGroup'
 ]);
 
+Route::post('image/updategroup', [
+	'uses' => 'ImageController@updateGroup'
+]);
+
+Route::delete('image/deletegroup/{group_id}', [
+	'uses' => 'ImageController@deleteGroup'
+]);
+
 Route::get('image/groups', [
 	'uses' => 'ImageController@getGroups'
 ]);

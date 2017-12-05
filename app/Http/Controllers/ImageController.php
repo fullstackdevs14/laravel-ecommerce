@@ -165,7 +165,6 @@ class ImageController extends Controller
      */
     public function store(Request $request)
     {
-
         if($request->hasFile('photo') && $request->input('uid')){
             $photo = $request->file('photo');
 
@@ -1936,6 +1935,51 @@ class ImageController extends Controller
 
         return Response()->json([
             'result' => $group
+            ]);
+    }
+
+    public function updateGroup(Request $request)
+    {
+        /* parameter input */
+        $avatar = $request->input('avatar');
+        $banner = $request->input('banner');
+        $name = $request->input('name');
+        $overview = $request->input('overview');
+        $group = Group::where('name', $name)->first();
+
+        if(!$group)
+        {
+            return Response()->json([
+            'result' => 'Cannot find group: '.$name
+            ], 500);
+        }
+
+        if (!empty($avatar)) {
+            $group->avatar = $avatar;
+        }
+        if (!empty($banner)) {
+            $group->cover_img = $banner;
+        }
+        if (!empty($overview)) {
+            $group->description = $overview;
+        }
+
+        $group->save();
+
+        return Response()->json([
+            'result' => $group
+            ]);
+    }
+
+    public function deleteGroup($group_id) {
+        $group = Group::find($group_id);
+
+        if ($group) {
+            $group->delete();
+        }
+
+        return Response()->json([
+            'group' => $group
             ]);
     }
 
