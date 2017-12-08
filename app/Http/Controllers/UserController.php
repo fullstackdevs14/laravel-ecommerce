@@ -1066,4 +1066,40 @@ class UserController extends Controller {
             ]);
         Mail::queue($validateEmail);
 	}
+
+	public function setExperience(Request $request) {
+		$user_id = $request->input('user_id');
+		$exp = $request->input('exp');
+
+		$user = User::find($user_id);
+		if ($user) {
+			$user->exp = $exp;
+			$user->save();
+			return Response()->json([
+				"result" => 'ok',
+				], 200);
+		}
+
+		return Response()->json([
+				"result" => 'user not found',
+				], 404);
+	}
+
+	public function setLevel(Request $request) {
+		$user_id = $request->input('user_id');
+		$user = User::find($user_id);
+
+		if ($user) {
+			$user->level += 1;
+			$user->save();
+
+			return Response()->json([
+				"result" => 'ok',
+				], 200);
+		}
+
+		return Response()->json([
+				"result" => 'user not found',
+				], 404);
+	}
 }

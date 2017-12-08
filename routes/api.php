@@ -315,6 +315,14 @@ Route::post('/user/connections', [
 	'uses' => 'UserController@getConnections'
 ]);
 
+Route::post('/user/experience', [
+	'uses' => 'UserController@setExperience'
+]);
+
+Route::post('/user/level', [
+	'uses' => 'UserController@setLevel'
+]);
+
 Route::post('contactus', [
 	'uses' => 'UserController@contactUs'
 ]);
