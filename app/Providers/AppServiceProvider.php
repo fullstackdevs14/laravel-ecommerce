@@ -7,6 +7,7 @@ use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Storage;
 use App\Image\Thumbnail;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 use App\Models\Tag;
 use Tymon\JWTAuth\Http\Parser\Cookies;
 use Tymon\JWTAuth\Http\Parser\Parser;
@@ -27,6 +28,8 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app['view']->addNamespace('dn', base_path() . '/resources/views/dn');
         $this->app['view']->addNamespace('clickagy', base_path() . '/resources/views/clickagy');
+
+        Schema::defaultStringLength(191);
     }
 
     /**

@@ -99,6 +99,10 @@ Route::get('image/search/{tag}', [
 	'uses' => 'ImageController@onSearchTag'
 ]);
 
+Route::post('/image/searchwallpaper', [
+	'uses' => 'ImageController@searchWallpaper'
+]);
+
 // Social signup
 Route::post('/oAuth', [
 	'uses' => 'UserController@oAuth'
