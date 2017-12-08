@@ -123,6 +123,7 @@ class ImageController extends Controller
         {
             // recreate cache file
             $url = $s3->get($image->s3_id);
+            
             $retval = new \Imagick();
             $retval->readImageBlob($url);
             
@@ -2257,4 +2258,66 @@ class ImageController extends Controller
             ]);
     }
 
+    public function searchWallpaper(Request $request)
+    {
+        // $image = ImageModel::where('id', '22')->first();
+        // return $image->getWallpaperTags();
+
+        $input = $request->input('searchkey');
+
+        // $page = env('SEARCH_PER_PAGE');
+        $query = app(\LaravelCloudSearch\CloudSearcher::class)->newQuery();
+
+        $result = $query->searchableType(ImageModel::class)
+            ->qOr(function($builder) use ($input) {
+                foreach($input as $key)
+                {
+                    $builder = $builder->phrase($key);
+                }
+            })
+            ->paginate(3);
+        
+        // refresh the thumbnail url from original to refined
+        $all = collect();
+        foreach ($result as $item)
+        {
+            $image = ImageModel::leftJoin('users', 'users.id', '=', 'images.upload_by')  
+                    ->where('images.id', $item->image_id)
+                    ->select('images.*', 'users.id as userid', 'users.*', 'images.likes as likes', 'images.id as id', 'images.created_at as created_at')
+                    ->first();
+            $item = $image;
+            // get view
+            $image_view = Image_View::where('image_id','=',$item->id)
+                          ->get();
+            // get favorite
+            $image_fav = FavImage::where('image_id', '=', $item->id)
+                         ->get();
+            // get comment
+            $image_comment = Image_comment::where('image_id', '=', $item->id)
+                             ->get();
+            $filename = $image->s3_id;
+            $index = strpos($filename, ".");
+            $thumb_filename = substr_replace($filename, "-bigthumbnail", $index, 0);
+            $item->s3_id = $thumb_filename;
+            $item->now = $this->now($item->created_at);
+            $item->view = count($image_view);
+            $item->favorites = count($image_fav);
+            $item->comments = count($image_comment);
+            $all->push($item);
+        }
+        // $query = app(\LaravelCloudSearch\CloudSearcher::class)->newQuery();
+        // $query->or(function($builder) {
+        //     $builder->phrase('tulip')
+        //         ->phrase('test');
+        // });
+        // $results = $query->searchableType(ImageModel::class)->get();
+        // return $results;
+
+        // get AWS cloudsearch result
+        // $result = ImageModel::search($input)->get();
+        return Response()->json([
+            "result" => $all,
+            "total" => $result->total()
+            ]);        
+    }
 }

@@ -183,6 +183,8 @@ return [
         App\Providers\RouteServiceProvider::class,
         App\Providers\S3ServiceProvider::class,
         Musonza\Chat\ChatServiceProvider::class,
+
+        LaravelCloudSearch\LaravelCloudSearchServiceProvider::class,
     ],
 
     /*
