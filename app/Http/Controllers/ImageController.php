@@ -2275,14 +2275,14 @@ class ImageController extends Controller
                     $builder = $builder->phrase($key);
                 }
             })
-            ->paginate(3);
+            ->paginate(24);
         
         // refresh the thumbnail url from original to refined
         $all = collect();
         foreach ($result as $item)
         {
             $image = ImageModel::leftJoin('users', 'users.id', '=', 'images.upload_by')  
-                    ->where('images.id', $item->image_id)
+                    ->where('images.id', $item->target_id)
                     ->select('images.*', 'users.id as userid', 'users.*', 'images.likes as likes', 'images.id as id', 'images.created_at as created_at')
                     ->first();
             $item = $image;

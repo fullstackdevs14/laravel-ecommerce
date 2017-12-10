@@ -8,6 +8,8 @@ use App\Models\Group;
 use App\Models\User\User_oAuth;
 use App\Models\User\User_Email;
 use App\Models\User\User_Follow;
+use App\Models\Image\Group_Follows;
+use App\Models\Image\Group_image;
 use App\Models\Image\Post;
 use App\Models\Image\Image_comment;
 use App\Models\Image\Image_View;
@@ -1067,39 +1069,117 @@ class UserController extends Controller {
         Mail::queue($validateEmail);
 	}
 
-	public function setExperience(Request $request) {
-		$user_id = $request->input('user_id');
-		$exp = $request->input('exp');
+	public function searchUser(Request $request)
+    {
 
-		$user = User::find($user_id);
-		if ($user) {
-			$user->exp = $exp;
-			$user->save();
-			return Response()->json([
-				"result" => 'ok',
-				], 200);
-		}
+        $input = $request->input('searchkey');
 
-		return Response()->json([
-				"result" => 'user not found',
-				], 404);
-	}
+        // $page = env('SEARCH_PER_PAGE');
+        $query = app(\LaravelCloudSearch\CloudSearcher::class)->newQuery();
 
-	public function setLevel(Request $request) {
-		$user_id = $request->input('user_id');
-		$user = User::find($user_id);
+        $result = $query->searchableType(User::class)
+            ->qOr(function($builder) use ($input) {
+                foreach($input as $key)
+                {
+                    $builder = $builder->phrase($key);
+                }
+            })
+            ->paginate(12);
 
-		if ($user) {
-			$user->level += 1;
-			$user->save();
+ 		// refresh the thumbnail url from original to refined
+        $all = collect();
+        foreach ($result as $item)
+        {
+            $user = User::where('id', $item->target_id)
+                    ->first();
+            $item = $user;
+            // get view
+            $follower = User_Follow::where('user_follows.follower_id','=',$item->id)
+            			->leftJoin('users', 'users.id', '=', 'user_follows.user_id')
+			            ->orderBy('user_follows.created_at', 'desc')
+			            ->limit(4)
+			            ->get();
+			$item->follow_count = User_Follow::where('follower_id','=',$item->id)->count();
+			$item->follow = $follower;
+            // get favorite
+            $image_upload = ImageModel::where('upload_by', '=', $item->id)
+				            ->orderBy('created_at', 'desc')
+				            ->limit(3)
+				            ->get();
+			$image_last_avatar = ImageModel::where('upload_by', '=', $item->id)
+					            ->orderBy('created_at', 'desc')
+					            ->offset(4)
+					            ->limit(1)
+					            ->first();
+			if($image_last_avatar)
+				$item->upload_last_avatar = $image_last_avatar->s3_id;
+            $item->upload_count = ImageModel::where('upload_by', '=', $item->id)->count();
+            $item->upload = $image_upload;
+            
+            $all->push($item);
+        }       
+        // refresh the thumbnail url from original to refined
+        return Response()->json([
+            "result" => $all,
+            "total" => $result->total()
+            ]);        
+    }
 
-			return Response()->json([
-				"result" => 'ok',
-				], 200);
-		}
+    public function searchGroup(Request $request)
+    {
 
-		return Response()->json([
-				"result" => 'user not found',
-				], 404);
-	}
+        $input = $request->input('searchkey');
+
+        // $page = env('SEARCH_PER_PAGE');
+        $query = app(\LaravelCloudSearch\CloudSearcher::class)->newQuery();
+
+        $result = $query->searchableType(Group::class)
+            ->qOr(function($builder) use ($input) {
+                foreach($input as $key)
+                {
+                    $builder = $builder->phrase($key);
+                }
+            })
+            ->paginate(12);
+
+ 		// refresh the thumbnail url from original to refined
+        $all = collect();
+        foreach ($result as $item)
+        {
+            $group = Group::where('id', $item->target_id)
+                    ->first();
+            $item = $group;
+            // get view
+            $follower = Group_Follows::where('group_follows.group_id','=',$item->id)
+            			->leftJoin('users', 'users.id', '=', 'group_follows.follower_id')
+			            ->orderBy('users.created_at', 'desc')
+			            ->limit(4)
+			            ->get();
+			$item->follow_count = Group_Follows::where('group_id','=',$item->id)->count();
+			$item->follow = $follower;
+            // get group image
+            $group_image = Group_image::where('group_id', $group->name)
+            				->leftJoin('images', 'images.id', '=', 'group_image.image_id')
+            				->orderBy('group_image.created_at', 'desc')
+            				->limit(3)
+				            ->get();
+			$image_last_avatar = Group_image::where('group_id', $group->name)
+	            				->leftJoin('images', 'images.id', '=', 'group_image.image_id')
+	            				->orderBy('group_image.created_at', 'desc')
+					            ->offset(4)
+					            ->limit(1)
+					            ->first();
+			if($image_last_avatar)
+				$item->upload_last_avatar = $image_last_avatar->s3_id;
+            $item->upload_count = Group_image::where('group_id', '=', $item->name)->count();
+            $item->upload = $group_image;
+            
+            $all->push($item);
+        }       
+        // refresh the thumbnail url from original to refined
+        return Response()->json([
+            "result" => $all,
+            "total" => $result->total()
+            ]);        
+    }
 }

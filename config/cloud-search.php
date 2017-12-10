@@ -56,7 +56,7 @@ return [
 
     'fields' => [
         'id' => 'literal',
-        'image_id' => 'int',
+        'target_id' => 'int',
         'title' => 'text',
         'description' => 'text',
         'comments' => 'text-array',

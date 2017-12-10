@@ -103,6 +103,14 @@ Route::post('/image/searchwallpaper', [
 	'uses' => 'ImageController@searchWallpaper'
 ]);
 
+Route::post('/user/searchuser', [
+	'uses' => 'UserController@searchUser'
+]);
+
+Route::post('/group/searchgroup', [
+	'uses' => 'UserController@searchGroup'
+]);
+
 // Social signup
 Route::post('/oAuth', [
 	'uses' => 'UserController@oAuth'
@@ -317,14 +325,6 @@ Route::post('/image/gettagcloud', [
 
 Route::post('/user/connections', [
 	'uses' => 'UserController@getConnections'
-]);
-
-Route::post('/user/experience', [
-	'uses' => 'UserController@setExperience'
-]);
-
-Route::post('/user/level', [
-	'uses' => 'UserController@setLevel'
 ]);
 
 Route::post('contactus', [

@@ -47,7 +47,7 @@ class ImageModel extends Model
     public function getSearchDocument()
     {
 		return [
-            'image_id' => $this->id,
+            'target_id' => $this->id,
 		    'title' => $this->title,
 		    'description' => $this->description,
             'comments' => $this->getCommentTexts(),
