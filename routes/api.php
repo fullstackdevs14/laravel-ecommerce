@@ -330,3 +330,11 @@ Route::post('/user/connections', [
 Route::post('contactus', [
 	'uses' => 'UserController@contactUs'
 ]);
+
+Route::post('/user/experience', [
+	'uses' => 'UserController@setExperience'
+]);
+
+Route::post('/user/level', [
+	'uses' => 'UserController@setLevel'
+]);
