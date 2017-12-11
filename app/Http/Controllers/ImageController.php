@@ -77,7 +77,7 @@ class ImageController extends Controller
     {
         $user_id = $request->input('user_id');
         $follower_id = $request->input('follower_id');
-        if(User_Follow::where('user_id', $user_id)->first() && User_Follow::where('follower_id', $follower_id)->first())
+        if(User_Follow::where('user_id', $user_id)->where('follower_id', $follower_id)->first())
             return Response()->json([
                 "result" => "Already"
                 ], 200);

@@ -338,3 +338,19 @@ Route::post('/user/experience', [
 Route::post('/user/level', [
 	'uses' => 'UserController@setLevel'
 ]);
+
+Route::post('followsearchgroup', [
+	'uses' => 'UserController@followSearchGroup'
+]);
+
+Route::post('unfollowsearchgroup', [
+	'uses' => 'UserController@unfollowSearchGroup'
+]);
+
+Route::post('followsearchuser', [
+	'uses' => 'UserController@followSearchUser'
+]);
+
+Route::post('unfollowsearchuser', [
+	'uses' => 'UserController@unfollowSearchUser'
+]);

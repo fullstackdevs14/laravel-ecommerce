@@ -1073,7 +1073,7 @@ class UserController extends Controller {
     {
 
         $input = $request->input('searchkey');
-
+        $user_id = $request->input('userid');
         // $page = env('SEARCH_PER_PAGE');
         $query = app(\LaravelCloudSearch\CloudSearcher::class)->newQuery();
 
@@ -1090,32 +1090,7 @@ class UserController extends Controller {
         $all = collect();
         foreach ($result as $item)
         {
-            $user = User::where('id', $item->target_id)
-                    ->first();
-            $item = $user;
-            // get view
-            $follower = User_Follow::where('user_follows.follower_id','=',$item->id)
-            			->leftJoin('users', 'users.id', '=', 'user_follows.user_id')
-			            ->orderBy('user_follows.created_at', 'desc')
-			            ->limit(4)
-			            ->get();
-			$item->follow_count = User_Follow::where('follower_id','=',$item->id)->count();
-			$item->follow = $follower;
-            // get favorite
-            $image_upload = ImageModel::where('upload_by', '=', $item->id)
-				            ->orderBy('created_at', 'desc')
-				            ->limit(3)
-				            ->get();
-			$image_last_avatar = ImageModel::where('upload_by', '=', $item->id)
-					            ->orderBy('created_at', 'desc')
-					            ->offset(4)
-					            ->limit(1)
-					            ->first();
-			if($image_last_avatar)
-				$item->upload_last_avatar = $image_last_avatar->s3_id;
-            $item->upload_count = ImageModel::where('upload_by', '=', $item->id)->count();
-            $item->upload = $image_upload;
-            
+            $item = User::getSearchItem($item->target_id, $user_id);
             $all->push($item);
         }       
         // refresh the thumbnail url from original to refined
@@ -1129,6 +1104,7 @@ class UserController extends Controller {
     {
 
         $input = $request->input('searchkey');
+        $uid = $request->input('userid');
 
         // $page = env('SEARCH_PER_PAGE');
         $query = app(\LaravelCloudSearch\CloudSearcher::class)->newQuery();
@@ -1146,34 +1122,7 @@ class UserController extends Controller {
         $all = collect();
         foreach ($result as $item)
         {
-            $group = Group::where('id', $item->target_id)
-                    ->first();
-            $item = $group;
-            // get view
-            $follower = Group_Follows::where('group_follows.group_id','=',$item->id)
-            			->leftJoin('users', 'users.id', '=', 'group_follows.follower_id')
-			            ->orderBy('users.created_at', 'desc')
-			            ->limit(4)
-			            ->get();
-			$item->follow_count = Group_Follows::where('group_id','=',$item->id)->count();
-			$item->follow = $follower;
-            // get group image
-            $group_image = Group_image::where('group_id', $group->name)
-            				->leftJoin('images', 'images.id', '=', 'group_image.image_id')
-            				->orderBy('group_image.created_at', 'desc')
-            				->limit(3)
-				            ->get();
-			$image_last_avatar = Group_image::where('group_id', $group->name)
-	            				->leftJoin('images', 'images.id', '=', 'group_image.image_id')
-	            				->orderBy('group_image.created_at', 'desc')
-					            ->offset(4)
-					            ->limit(1)
-					            ->first();
-			if($image_last_avatar)
-				$item->upload_last_avatar = $image_last_avatar->s3_id;
-            $item->upload_count = Group_image::where('group_id', '=', $item->name)->count();
-            $item->upload = $group_image;
-            
+            $item = Group::getSearchItem($item->target_id, $uid);
             $all->push($item);
         }       
         // refresh the thumbnail url from original to refined
@@ -1217,5 +1166,185 @@ class UserController extends Controller {
 		return Response()->json([
 				"result" => 'user not found',
 				], 404);
+	}
+
+	public function followSearchGroup(Request $request)
+	{
+		$group = Group::where('name', $request->input('group'))
+					->first();
+        $user_id = $request->input('user_id');
+        $group_id = 0;
+
+        if($group)
+        	$group_id = $group->id;
+
+        $group_follow = Group_Follows::where('group_id', $group_id)
+                ->where('follower_id', $user_id)
+                ->first();
+
+        // if already followed by user                
+        if($group_follow)
+        {
+            $group_follow->delete();
+        }
+        // if not followed, following
+        else
+        {
+            $group_follow = DB::table('group_follows')->insert([
+                'group_id' => $group_id,
+                'follower_id' => $user_id
+            ]);
+
+        }
+
+        $index = $request->input('index');
+ 		$input = $request->input('searchkey');
+
+        // $page = env('SEARCH_PER_PAGE');
+        $query = app(\LaravelCloudSearch\CloudSearcher::class)->newQuery();
+
+        $result = $query->searchableType(Group::class)
+            ->qOr(function($builder) use ($input) {
+                foreach($input as $key)
+                {
+                    $builder = $builder->phrase($key);
+                }
+            })
+            ->paginate(12);
+
+ 		// refresh the thumbnail url from original to refined
+        
+        $item = $result[$index];
+        $all = Group::getSearchItem($item->target_id, $user_id);
+        // refresh the thumbnail url from original to refined
+        return Response()->json([
+            "result" => $all
+            ]);        
+	}
+
+	public function unfollowSearchGroup(Request $request)
+	{
+		$group = Group::where('name', $request->input('group'))
+					->first();
+        $user_id = $request->input('user_id');
+        $group_id = 0;
+
+        if($group)
+        	$group_id = $group->id;
+
+        $group_follow = Group_Follows::where('group_id', $group_id)
+                ->where('follower_id', $user_id)
+                ->first();
+
+        $group_follow->delete();      
+
+        $index = $request->input('index');
+ 		$input = $request->input('searchkey');
+
+        // $page = env('SEARCH_PER_PAGE');
+        $query = app(\LaravelCloudSearch\CloudSearcher::class)->newQuery();
+
+        $result = $query->searchableType(Group::class)
+            ->qOr(function($builder) use ($input) {
+                foreach($input as $key)
+                {
+                    $builder = $builder->phrase($key);
+                }
+            })
+            ->paginate(12);
+
+ 		// refresh the thumbnail url from original to refined
+        
+        $item = $result[$index];
+        $all = Group::getSearchItem($item->target_id, $user_id);
+        // refresh the thumbnail url from original to refined
+        return Response()->json([
+            "result" => $all
+            ]);        
+	}
+
+	public function followSearchUser(Request $request)
+	{
+		$target_id = $request->input('target_user');
+        $user_id = $request->input('user_id');
+
+        $user_follow = User_Follow::where('user_id', $user_id)
+                ->where('follower_id', $target_id)
+                ->first();
+        
+        // if already followed by user                
+        if($user_follow)
+        {
+            $user_follow->delete();
+        }
+        // if not followed, following
+        else
+        {
+            $user_follow = DB::table('user_follows')->insert([
+                'user_id' => $user_id,
+                'follower_id' => $target_id
+            ]);
+
+        }
+
+        $index = $request->input('index');
+ 		$input = $request->input('searchkey');
+
+        // $page = env('SEARCH_PER_PAGE');
+        $query = app(\LaravelCloudSearch\CloudSearcher::class)->newQuery();
+
+        $result = $query->searchableType(User::class)
+            ->qOr(function($builder) use ($input) {
+                foreach($input as $key)
+                {
+                    $builder = $builder->phrase($key);
+                }
+            })
+            ->paginate(12);
+
+ 		// refresh the thumbnail url from original to refined
+        
+        $item = $result[$index];
+        $all = User::getSearchItem($item->target_id, $user_id);
+        // refresh the thumbnail url from original to refined
+        return Response()->json([
+            "result" => $all
+            ]);        
+	}
+
+	public function unfollowSearchUser(Request $request)
+	{
+		$target_id = $request->input('target_user');
+        $user_id = $request->input('user_id');
+
+        $user_follow = User_Follow::where('user_id', $user_id)
+                ->where('follower_id', $target_id)
+                ->first();
+
+        $user_follow->delete();
+ 
+        $index = $request->input('index');
+ 		$input = $request->input('searchkey');
+
+        // $page = env('SEARCH_PER_PAGE');
+        $query = app(\LaravelCloudSearch\CloudSearcher::class)->newQuery();
+
+        $result = $query->searchableType(User::class)
+            ->qOr(function($builder) use ($input) {
+                foreach($input as $key)
+                {
+                    $builder = $builder->phrase($key);
+                }
+            })
+            ->paginate(12);
+
+ 		// refresh the thumbnail url from original to refined
+        
+        $item = $result[$index];
+        $all = User::getSearchItem($item->target_id, $user_id);
+        // refresh the thumbnail url from original to refined
+        return Response()->json([
+            "result" => $all
+            ]);        
 	}
 }
