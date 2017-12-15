@@ -820,6 +820,30 @@ class UserController extends Controller {
 				], 200);
 	}	
 
+	public function unBlockUser(Request $request)
+	{
+		$user_id = $request->input('uid');
+		$block_name = $request->input('block_name');
+
+		$user = User::whereusername($block_name)->first();
+		// if user not exist
+		if(!$user)
+		{
+			return Response()->json([
+				"result" => 'error'
+				], 400);
+		}
+		return $user;
+		$user_ignore = User_Ignore::where('user_id', $user_id)
+					   ->where('banned_id', $user->id)	
+					   ->first();
+		return $user_ignore;					   
+		$user_ignore->remove();
+		return Response()->json([
+				"result" => 1
+				], 200);
+	}	
+
 	public function isBlock(Request $request)
 	{
 		$user_id = $request->input('uid');
@@ -1346,5 +1370,26 @@ class UserController extends Controller {
         return Response()->json([
             "result" => $all
             ]);        
+	}
+
+	public function getHint(Request $request)
+	{
+		$hint = $request->input('hint');
+		if(!$hint) 
+		{
+			// return all results based on json
+	        return Response()->json([
+	            "result" => []
+	            ]);
+		}
+		$query = User::where('username', 'LIKE', '%'.$hint.'%')
+				// ->orWhere('lastname', 'LIKE', '%'.$hint.'%')
+				// ->orWhere('username', 'LIKE', '%'.$hint.'%')
+				->select('username')
+				->get();
+		// return all results based on json
+        return Response()->json([
+            "result" => $query
+            ]);
 	}
 }

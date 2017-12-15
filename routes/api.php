@@ -291,6 +291,10 @@ Route::post('/user/block', [
 	'uses' => 'UserController@blockUser'
 ]);
 
+Route::post('/user/unblock', [
+	'uses' => 'UserController@unBlockUser'
+]);
+
 Route::post('/user/isblocked', [
 	'uses' => 'UserController@isBlock'
 ]);
@@ -353,4 +357,8 @@ Route::post('followsearchuser', [
 
 Route::post('unfollowsearchuser', [
 	'uses' => 'UserController@unfollowSearchUser'
+]);
+
+Route::post('gethint', [
+	'uses' => 'UserController@getHint'
 ]);
