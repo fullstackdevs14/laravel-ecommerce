@@ -362,3 +362,7 @@ Route::post('unfollowsearchuser', [
 Route::post('gethint', [
 	'uses' => 'UserController@getHint'
 ]);
+
+Route::post('getblocklist', [
+	'uses' => 'UserController@getBlockList'
+]);

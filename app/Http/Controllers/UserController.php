@@ -833,7 +833,6 @@ class UserController extends Controller {
 				"result" => 'error'
 				], 400);
 		}
-		return $user;
 		$user_ignore = User_Ignore::where('user_id', $user_id)
 					   ->where('banned_id', $user->id)	
 					   ->first();
@@ -850,14 +849,19 @@ class UserController extends Controller {
 		$block_name = $request->input('block_name');
 		
 		$user = User::whereusername($block_name)->first();
-		$user_ignore = User_Ignore::where('user_id', $user->id)->where('banned_id', $user_id)->get();
-		
-		if(count($user_ignore) != 0) 
+		// check if user blocks the opponent
+		$user_ignore = User_Ignore::where('user_id', $user_id)->where('banned_id', $user->id)->get();
+		// check if opponent block user
+		$r_user_ignore = User_Ignore::where('user_id', $user->id)->where('banned_id', $user_id)->get();
+
+		// if in any case, blocked, result: 1
+		if(count($user_ignore) + count($r_user_ignore) > 0) 
 		{
 			return Response()->json([
 				"result" => 1
 				], 200);
 		}
+
 		return Response()->json([
 			"result" => 0
 			], 200);
@@ -1390,6 +1394,25 @@ class UserController extends Controller {
 		// return all results based on json
         return Response()->json([
             "result" => $query
+            ]);
+	}
+
+	public function getBlockList(Request $request)
+	{
+		$user = $request->input('user');
+		$query = User_Ignore::where('user_ignore.user_id', $user)
+				 ->leftJoin('users', 'users.id','=','user_ignore.banned_id')
+				 ->select('users.username')
+				 ->get();
+		
+		$all = collect();		
+		foreach($query as $item)
+		{
+			$all->push($item->username);
+		}
+		// return all results based on json
+        return Response()->json([
+            "result" => $all
             ]);
 	}
 }
