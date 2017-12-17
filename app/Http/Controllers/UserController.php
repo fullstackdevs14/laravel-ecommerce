@@ -236,6 +236,7 @@ class UserController extends Controller {
 		if($visitor)
 		{
 			$user_ignore = User_Ignore::where('user_id', $user->id)->where('banned_id', $visitor['id'])->get();	
+			
 			if(count($user_ignore) != 0) $is_ban = 1;
 			$user['isFollowed'] = User_Follow::where('user_id', $visitor['id'])
 			->where('follower_id', $user->id)
