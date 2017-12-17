@@ -370,3 +370,7 @@ Route::get('/user/settings/notification/{user_id}', [
 Route::post('/user/settings/notification', [
 	'uses' => 'UserController@setNotificationSettings'
 ]);
+
+Route::post('/notifications', [
+	'uses' => 'UserController@sendNotifications'
+]);
