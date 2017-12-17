@@ -362,3 +362,11 @@ Route::post('unfollowsearchuser', [
 Route::post('gethint', [
 	'uses' => 'UserController@getHint'
 ]);
+
+Route::get('/user/settings/notification/{user_id}', [
+	'uses' => 'UserController@getNotificationSettings'
+]);
+
+Route::post('/user/settings/notification', [
+	'uses' => 'UserController@setNotificationSettings'
+]);
