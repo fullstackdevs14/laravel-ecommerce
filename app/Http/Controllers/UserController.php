@@ -1415,4 +1415,74 @@ class UserController extends Controller {
             "result" => $all
             ]);
 	}
+
+	public function setNotificationSettings(Request $request)
+	{
+	    $user_id = $request->input('user_id');
+
+		$setting = User_Settings::where('user_id', $user_id)->first();
+	    if ($setting === null) {
+	        $setting = new User_Settings();
+	        $setting->user_id = $user_id;
+	    }
+
+		if ($request->has('newsletter')) {
+	        $setting->newsletter = $request->input('newsletter');
+	    }
+	    if ($request->has('announcement')) {
+	        $setting->announcement = $request->input('announcement');
+	    }
+	    if ($request->has('private_msg')) {
+	        $setting->private_msg = $request->input('private_msg');
+	    }
+	    if ($request->has('comment_wallpaper')) {
+	        $setting->comment_wallpaper = $request->input('comment_wallpaper');
+	    }
+	    if ($request->has('post_response')) {
+	        $setting->post_response = $request->input('post_response');
+	    }
+	    if ($request->has('comment_profile')) {
+	        $setting->comment_profile = $request->input('comment_profile');
+	    }
+	    if ($request->has('favorite')) {
+	        $setting->favorite = $request->input('favorite');
+	    }
+	    $setting->save();
+
+		return Response()->json($setting);
+	}
+
+	public function getNotificationSettings($user_id)
+	{
+	    
+	    return Response()->json($this->getUserSetting($user_id));
+	}
+
+	public function sendNotifications(Request $request)
+	{
+		$user_id = $request->input('user_id');
+	    $setting = $this->getUserSetting($user_id);
+	    $type = $request->input('type');
+
+		if ($type === 10 && $setting->private_msg) { // Send private message
+
+		} else if ($type === 7 && $setting->comment_profile) { // Comment on profile
+
+		} else if ($type === 2 && $setting->comment_wallpaper) { // Comment on wallpaper
+
+		} else if ($type === 1 && $setting->favorite) { // Follow profile
+	        
+	    }
+	    return Response()->json($request->all());
+	}
+
+	private function getUserSetting($user_id)
+	{
+	    $setting = User_Settings::where('user_id', $user_id)->first();
+	    if ($setting === null) {
+	        $setting = new User_Settings();
+	        $setting->user_id = $user_id;
+	    }
+	    return $setting;
+	}
 }

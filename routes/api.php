@@ -366,3 +366,15 @@ Route::post('gethint', [
 Route::post('getblocklist', [
 	'uses' => 'UserController@getBlockList'
 ]);
+
+Route::get('/user/settings/notification/{user_id}', [
+	'uses' => 'UserController@getNotificationSettings'
+]);
+
+Route::post('/user/settings/notification', [
+	'uses' => 'UserController@setNotificationSettings'
+]);
+
+Route::post('/notifications', [
+	'uses' => 'UserController@sendNotifications'
+]);
