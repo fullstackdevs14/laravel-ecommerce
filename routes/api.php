@@ -363,19 +363,6 @@ Route::post('gethint', [
 	'uses' => 'UserController@getHint'
 ]);
 
-<<<<<<< HEAD
 Route::post('getblocklist', [
 	'uses' => 'UserController@getBlockList'
-=======
-Route::get('/user/settings/notification/{user_id}', [
-	'uses' => 'UserController@getNotificationSettings'
-]);
-
-Route::post('/user/settings/notification', [
-	'uses' => 'UserController@setNotificationSettings'
-]);
-
-Route::post('/notifications', [
-	'uses' => 'UserController@sendNotifications'
->>>>>>> 53d9cc6ae77ff05fb240d3e8a050d0bc63e2da15
 ]);
