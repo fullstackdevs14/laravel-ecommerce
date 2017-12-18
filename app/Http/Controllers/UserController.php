@@ -1420,6 +1420,23 @@ class UserController extends Controller {
             ]);
 	}
 
+	public function getBanList(Request $request) {
+		$user = $request->input('user');
+		$query1 = User_Ignore::where('user_ignore.banned_id', $user)
+				 ->leftJoin('users', 'users.id','=','user_ignore.user_id')
+				 ->select('users.id', 'users.username')
+				 ->get();
+		$query2 = User_Ignore::where('user_ignore.user_id', $user)
+				 ->leftJoin('users', 'users.id','=','user_ignore.banned_id')
+				 ->select('users.id', 'users.username')
+				 ->get();
+
+		return Response()->json([
+			"block" => $query2,
+			"blocked" => $query1
+			]);
+	}
+
 	public function setNotificationSettings(Request $request)
 	{
 	    $user_id = $request->input('user_id');
