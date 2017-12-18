@@ -17,6 +17,7 @@ use App\Models\Image\Image_View;
 use App\Models\Image\User_like;
 use App\Models\User\Favorite\FavImage;
 use App\Models\User\User_Ignore;
+use App\Models\User\User_Report;
 use Illuminate\Http\Request;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Events\Event;
@@ -813,17 +814,61 @@ class UserController extends Controller {
 				], 400);
 		}
 		
-		$user_ignore = new User_Ignore([
-			'user_id' => $user_id,
-			'banned_id' => $user->id,
-			]);
+		$query = User_Ignore::where('user_id', $user_id)
+			->where('banned_id')
+			->exists();
+		if ($query) {
+			$user_ignore = new User_Ignore([
+				'user_id' => $user_id,
+				'banned_id' => $user->id,
+				]);
+			$user_ignore->save();
+		}
 
 		// save to Database
 		$user_ignore->save();
 		return Response()->json([
 				"result" => 1
 				], 200);
-	}	
+	}
+
+	public function reportUser(Request $request) {
+		$user_id = $request->input('uid');
+		$block_name = $request->input('block_name');
+		$message = $request->input('message');
+
+		$user = User::whereusername($block_name)->first();
+		// if user not exist
+		if(!$user)
+		{
+			return Response()->json([
+				"result" => 'error'
+				], 400);
+		}
+
+		$query = User_Ignore::where('user_id', $user_id)
+			->where('banned_id')
+			->exists();
+		if ($query) {
+			$user_ignore = new User_Ignore([
+				'user_id' => $user_id,
+				'banned_id' => $user->id,
+				]);
+			$user_ignore->save();
+		}
+		
+		// save to Database
+
+		$report = new User_Report([
+            'user_id' => $user->id,
+            'content' => $message,
+            ]);
+		$report->save();
+
+		return Response()->json([
+				"result" => 1
+				], 200);
+	}
 
 	public function unBlockUser(Request $request)
 	{

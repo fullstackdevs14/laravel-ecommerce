@@ -291,6 +291,10 @@ Route::post('/user/block', [
 	'uses' => 'UserController@blockUser'
 ]);
 
+Route::post('/user/report', [
+	'uses' => 'UserController@reportUser'
+]);
+
 Route::post('/user/unblock', [
 	'uses' => 'UserController@unBlockUser'
 ]);
