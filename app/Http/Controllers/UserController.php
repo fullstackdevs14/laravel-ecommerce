@@ -839,9 +839,9 @@ class UserController extends Controller {
 		}
 		$user_ignore = User_Ignore::where('user_id', $user_id)
 					   ->where('banned_id', $user->id)	
-					   ->first();
-		return $user_ignore;					   
-		$user_ignore->remove();
+					   ->first();			   
+		$user_ignore->delete();
+
 		return Response()->json([
 				"result" => 1
 				], 200);
@@ -1409,14 +1409,14 @@ class UserController extends Controller {
 				 ->select('users.username')
 				 ->get();
 		
-		$all = collect();		
-		foreach($query as $item)
-		{
-			$all->push($item->username);
-		}
+		// $all = collect();		
+		// foreach($query as $item)
+		// {
+		// 	$all->push($item->username);
+		// }
 		// return all results based on json
         return Response()->json([
-            "result" => $all
+            "result" => $query
             ]);
 	}
 
