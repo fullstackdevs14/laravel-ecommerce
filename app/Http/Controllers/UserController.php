@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\User;
 use App\ImageModel;
+use App\User_Settings;
 use App\Models\Group;
 use App\Models\User\User_oAuth;
 use App\Models\User\User_Email;
