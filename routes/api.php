@@ -367,10 +367,6 @@ Route::post('getblocklist', [
 	'uses' => 'UserController@getBlockList'
 ]);
 
-Route::post('getbanlist', [
-	'uses' => 'UserController@getBanList'
-]);
-
 Route::get('/user/settings/notification/{user_id}', [
 	'uses' => 'UserController@getNotificationSettings'
 ]);

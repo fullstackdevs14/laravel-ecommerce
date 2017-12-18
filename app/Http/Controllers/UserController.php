@@ -22,9 +22,12 @@ use Illuminate\Auth\Events\Event;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Support\Facades\Storage;
 use JWTAuth;
+
 use Mail;
 use App\Mail\ConfirmationEmail;
 use App\Mail\ContactUs;
+use App\Mail\Notification;
+
 use Intervention\Image\ImageManagerStatic as Image;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -1403,28 +1406,17 @@ class UserController extends Controller {
 		$user = $request->input('user');
 		$query = User_Ignore::where('user_ignore.user_id', $user)
 				 ->leftJoin('users', 'users.id','=','user_ignore.banned_id')
-				 ->select('users.id', 'users.username')
+				 ->select('users.username')
 				 ->get();
-
-		return Response()->json([
-			"result" => $query
-            ]);
-	}
-
-	public function getBanList(Request $request) {
-		$user = $request->input('user');
-		$query1 = User_Ignore::where('user_ignore.banned_id', $user)
-				 ->leftJoin('users', 'users.id','=','user_ignore.user_id')
-				 ->select('users.id', 'users.username')
-				 ->get();
-		$query2 = User_Ignore::where('user_ignore.user_id', $user)
-				 ->leftJoin('users', 'users.id','=','user_ignore.banned_id')
-				 ->select('users.id', 'users.username')
-				 ->get();
-
-		return Response()->json([
-			"block" => $query2,
-			"blocked" => $query1
+		
+		$all = collect();		
+		foreach($query as $item)
+		{
+			$all->push($item->username);
+		}
+		// return all results based on json
+        return Response()->json([
+            "result" => $all
             ]);
 	}
 
@@ -1476,15 +1468,38 @@ class UserController extends Controller {
 	    $setting = $this->getUserSetting($user_id);
 	    $type = $request->input('type');
 
+	    $email_query = User_Email::where("user_id", $user_id)
+					  ->where('primary', '1')
+		    		  ->first();
+		$user = User::where('id', $user_id)->first();
+		$email = "";
+		$name = "";
+		if($email_query) $email = $email_query->email;
+		if($user) $name = $user->firstname . " " . $user->lastname;
+
+	    $notification = new Notification();
+        // message body
+        $text = "";
+
+        // email content
 		if ($type === 10 && $setting->private_msg) { // Send private message
-
+			#$text = 
 		} else if ($type === 7 && $setting->comment_profile) { // Comment on profile
-
+			#$text = 
 		} else if ($type === 2 && $setting->comment_wallpaper) { // Comment on wallpaper
-
+			#$text = 
 		} else if ($type === 1 && $setting->favorite) { // Follow profile
-	        
+	        #$text = 
 	    }
+
+	    /* forward email */
+	    $notification->to($email, $name)
+        ->setViewData([
+            'FNAME' => $name,
+            'CONTENT' => $text
+            ]);
+        Mail::queue($notification);
+
 	    return Response()->json($request->all());
 	}
 
