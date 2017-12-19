@@ -1575,4 +1575,36 @@ class UserController extends Controller {
 	    }
 	    return $setting;
 	}
+
+    public function follow(Request $request)
+    {
+        $user_id = $request->input('user_id');
+        $follower_id = $request->input('follower_id');
+        if(User_Follow::where('user_id', $user_id)->where('follower_id', $follower_id)->first())
+            return Response()->json([
+                "result" => "Already"
+                ], 200);
+        $user_follow = new User_Follow([
+            'user_id' => $request->input('user_id'),
+            'follower_id' => $request->input('follower_id')
+            ]);
+
+        $user_follow->save();
+
+        return Response()->json([
+            "result" => "Success"
+            ], 200);
+    }
+
+    public function unfollow(Request $request)
+    {
+        $user_id = $request->input('user_id');
+        $follower_id = $request->input('follower_id');
+        $user_follow = User_Follow::where('user_id', $user_id)->where('follower_id', $follower_id)->first();
+        $user_follow->delete();
+
+        return Response()->json([
+            "result" => "Success"
+            ], 200);
+    }
 }

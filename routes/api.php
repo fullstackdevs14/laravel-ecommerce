@@ -196,11 +196,6 @@ Route::post('/invite', [
 	'uses' => 'ImageController@invite'
 ]);
 
-
-Route::post('/follow', [
-	'uses' => 'ImageController@follow'
-]);
-
 // wallpaper report
 Route::post('/report', [
 	'uses' => 'ImageController@report'
@@ -241,6 +236,14 @@ Route::post('/user/setabout', [
 
 Route::post('/user/setpost', [
 	'uses' => 'UserController@setPost'
+]);
+
+Route::post('/user/follow', [
+	'uses' => 'UserController@follow'
+]);
+
+Route::post('/user/unfollow', [
+	'uses' => 'UserController@unfollow'
 ]);
 
 Route::post('/image/senddiamond', [

@@ -69,31 +69,6 @@ class ImageController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function follow(Request $request)
-    {
-        $user_id = $request->input('user_id');
-        $follower_id = $request->input('follower_id');
-        if(User_Follow::where('user_id', $user_id)->where('follower_id', $follower_id)->first())
-            return Response()->json([
-                "result" => "Already"
-                ], 200);
-        $user_follow = new User_Follow([
-            'user_id' => $request->input('user_id'),
-            'follower_id' => $request->input('follower_id')
-            ]);
-
-        $user_follow->save();
-
-        return Response()->json([
-            "result" => "Success"
-            ], 200);
-    }
-
-    /**
      * Resize/Crop a resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
