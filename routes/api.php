@@ -201,9 +201,12 @@ Route::post('/follow', [
 	'uses' => 'ImageController@follow'
 ]);
 
-// wallpaper report
 Route::post('/report', [
 	'uses' => 'ImageController@report'
+]);
+
+Route::post('/getwallpaperreportlist', [
+	'uses' => 'ImageController@getWallpaperReportList'
 ]);
 
 Route::post('/savefavtree', [
@@ -385,4 +388,20 @@ Route::post('/user/settings/notification', [
 
 Route::post('/notifications', [
 	'uses' => 'UserController@sendNotifications'
+]);
+
+Route::post('/changewallpapergroup', [
+	'uses' => 'ImageController@changeWallpaperGroup'
+]);
+
+Route::post('/rejectreport', [
+	'uses' => 'ImageController@rejectReport'
+]);
+
+Route::post('/removetag', [
+	'uses' => 'ImageController@removeTag'
+]);
+
+Route::post('/removewallpaper_report', [
+	'uses' => 'ImageController@removeWallpaper_Report'
 ]);
