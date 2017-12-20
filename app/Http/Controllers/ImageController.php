@@ -751,6 +751,9 @@ class ImageController extends Controller
                         ->where('group_follows.follower_id', $uploader->id)
                         ->select("name as name",'avatar as s3_id','groups.slug')
                         ->get();
+        
+        /* return all groups */
+        $all_group = Group::All();
 
         return Response()->json([
             'image' => $image,
@@ -759,7 +762,8 @@ class ImageController extends Controller
             'tags' => $result,
             'c_group' => $c_group,
             'a_group' => $group,
-            'popular' => $arr
+            'popular' => $arr,
+            'all_group' => $all_group
             ]);
     }
 
@@ -1035,12 +1039,14 @@ class ImageController extends Controller
         $reqImage = $request->input('image_id');
         $category = $request->input('category');
         $content = $request->input('content');
+        $category_type = $request->input('category_type');
 
         // report Object create 
         $report = new Report([
             'image_id' => $reqImage,
             'category' => $category,
-            'content' => $content
+            'content' => $content,
+            'type' => $category_type
             ]);
         // database save
         $report->save();
@@ -1049,6 +1055,20 @@ class ImageController extends Controller
         return Response()->json([
           'result' => 1
           ], 200);
+    }
+
+    public function getWallpaperReportList(Request $request)
+    {
+        $query = Report::leftJoin('images as image1', 'reports.image_id','=','image1.id')
+                 ->leftJoin('images as image2','reports.content','=','image2.id')   
+                 ->select('reports.category','reports.content','reports.type', 'reports.is_solved', 'reports.image_id', 'image1.*','image2.s3_id as duplicate_id', 'image2.title as d_title','reports.id as id')
+                 ->paginate(1);
+
+        // return JSON data
+        return Response()->json([
+          'result' => $query,
+          'total' => $query->total()
+          ], 200);       
     }
 
     public function getFavInfo($img_id, $user_id)
@@ -2307,5 +2327,125 @@ class ImageController extends Controller
             "result" => $all,
             "total" => $result->total()
             ]);        
+    }
+
+    public function changeWallpaperGroup(Request $request)
+    {
+        $from = $request->input('from');
+        $to = $request->input('to');
+        $image_id = $request->input('img_id');
+        $report = $request->input('report_id');
+
+        // flag as processed
+        $report = Report::where('id', $report)->first();
+        // if report available
+        if($report)
+        {
+            $report->is_solved = 1;
+            $report->save();
+        }
+
+        // find proper group
+        $group_image = Group_image::where('image_id', $image_id)
+                       ->where('group_id', $from) 
+                       ->first();
+
+        if($group_image)
+        {
+            $group_image->group_id = $to;
+            $group_image->save();
+
+            return Response()->json([
+                "code" => 1
+                ]);
+        }
+
+
+        return Response()->json([
+                "code" => 0
+                ]);
+    }
+
+    public function rejectReport(Request $request)
+    {
+        $report_id = $request->input('report_id');
+        // flag as processed
+        $report = Report::where('id', $report)->first();
+        // if report available
+        if($report)
+        {
+            $report->is_solved = 1;
+            $report->save();
+            return Response()->json([
+                "code" => 1
+                ]);
+        }
+
+        return Response()->json([
+                "code" => 0
+                ]);
+    }
+
+    public function removeTag(Request $request)
+    {
+        $tagname = $request->input('tag');
+        $img_id = $request->input('img_id');
+        $report_id = $request->input('report_id');
+
+        // flag as processed
+        $report = Report::where('id', $report_id)->first();
+        // if report available
+        if($report)
+        {
+            $report->is_solved = 1;
+            $report->save();
+        }
+
+        $tag = Tag::wherename($tagname)->first();
+        if($tag)
+        {
+            $tag_id = $tag->id;
+            $image_tag = Image_tag::where('image_id', $img_id)
+                         ->where('tag_id', $tag_id)
+                         ->first();
+            if($image_tag)
+            {
+                $image_tag->delete();
+            }
+
+            return Response()->json([
+                "code" => 1
+                ]);            
+        }
+
+        return Response()->json([
+                "code" => 0
+                ]);
+    }
+
+    public function removeWallpaper_Report(Request $request)
+    {
+        $img_id = $request->input('img_id');
+        $report_id = $request->input('report_id');
+
+        $wallpaper = ImageModel::where('id', $img_id)
+                     ->first();
+        if($wallpaper)  $wallpaper->delete();
+        // flag as processed
+        $report = Report::where('id', $report_id)->first();
+        // if report available
+        if($report)
+        {
+            $report->is_solved = 1;
+            $report->save();
+            
+            return Response()->json([
+                "code" => 1
+                ]);            
+        }
+
+        return Response()->json([
+                "code" => 0
+                ]);
     }
 }
