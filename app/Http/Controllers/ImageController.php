@@ -27,6 +27,7 @@ use App\Models\User\User_Social;
 use App\Models\User\Users;
 use App\Models\User\Favorite\Folder;
 use App\Models\User\Favorite\FavImage;
+use App\Models\User\User_Report;
 
 use App\Models\Group;
 use App\Models\Log;
@@ -1087,7 +1088,7 @@ class ImageController extends Controller
         $query = Report::leftJoin('images as image1', 'reports.image_id','=','image1.id')
                  ->leftJoin('images as image2','reports.content','=','image2.id')   
                  ->select('reports.category','reports.content','reports.type', 'reports.is_solved', 'reports.image_id', 'image1.*','image2.s3_id as duplicate_id', 'image2.title as d_title','reports.id as id')
-                 ->paginate(1);
+                 ->paginate(30);
 
         // return JSON data
         return Response()->json([
@@ -2399,7 +2400,7 @@ class ImageController extends Controller
         // if report available
         if($report)
         {
-            $report->is_solved = 1;
+            $report->is_solved = 2;
             $report->save();
             return Response()->json([
                 "code" => 1
@@ -2471,6 +2472,46 @@ class ImageController extends Controller
 
         return Response()->json([
                 "code" => 0
+                ]);
+    }
+
+    public function getReportActivity(Request $request)
+    {
+        $query = Report::leftJoin('images as image1', 'reports.image_id','=','image1.id')
+                 ->leftJoin('images as image2','reports.content','=','image2.id')   
+                 ->select('reports.category','reports.content','reports.type', 'reports.is_solved', 'reports.image_id', 'image1.*','image2.s3_id as duplicate_id', 'image2.title as d_title','reports.id as id')
+                 ->where('reports.is_solved','>','0')
+                 ->orderBy('reports.created_at')
+                 ->limit(10)
+                 ->get();
+        $user_query = User_Report::leftJoin('users', 'users.id','=','user__reports.user_id')
+                 ->select('user__reports.content', 'user__reports.is_solved', 'users.*')
+                 ->where('user__reports.is_solved','>','0')
+                 ->orderBy('user__reports.created_at')
+                 ->limit(10)
+                 ->get();
+        // put Sorts on Collection                  
+        $all = collect();
+        foreach ($query as $item)
+        {
+            $item['r_type'] = 1;
+            $all->push($item);
+        }
+        foreach ($user_query as $item)
+        {
+            $item['r_type'] = 2;
+            $all->push($item);
+        }
+
+        //DESC based on created date
+        $all = array_reverse(array_sort($all, function ($value) {
+            return $value['created_at'];
+        }));
+
+        $all = array_slice($all, 0, 10);
+
+        return Response()->json([
+                "result" => $all
                 ]);
     }
 }
