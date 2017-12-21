@@ -13,16 +13,20 @@ class CreateUserSettingsTable extends Migration
      */
     public function up()
     {
-        Schema::create('user__settings', function (Blueprint $table) {
+        Schema::create('user_settings', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('user_id')->default(0);
-            $table->boolean('newsletter')->default(true);
-            $table->boolean('announcement')->default(true);
+            $table->boolean('email')->default(true);
+            $table->boolean('browser')->default(true);
             $table->boolean('private_msg')->default(true);
             $table->boolean('comment_wallpaper')->default(true);
-            $table->boolean('post_response')->default(true);
             $table->boolean('comment_profile')->default(true);
-            $table->boolean('favorite')->default(true);
+            $table->boolean('follow_profile')->default(true);
+            $table->boolean('favorite_wallpaper')->default(true);
+            $table->boolean('wallpaper_gratuity')->default(true);
+            $table->boolean('achievement')->default(true);
+            $table->boolean('follower_levelup')->default(true);
+            $table->boolean('newsletter')->default(true);
             $table->timestamps();
         });
     }
@@ -34,6 +38,6 @@ class CreateUserSettingsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('user__settings');
+        Schema::dropIfExists('user_settings');
     }
 }

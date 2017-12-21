@@ -1493,11 +1493,11 @@ class UserController extends Controller {
 	        $setting->user_id = $user_id;
 	    }
 
-		if ($request->has('newsletter')) {
-	        $setting->newsletter = $request->input('newsletter');
+		if ($request->has('email')) {
+	        $setting->email = $request->input('email');
 	    }
-	    if ($request->has('announcement')) {
-	        $setting->announcement = $request->input('announcement');
+	    if ($request->has('browser')) {
+	        $setting->browser = $request->input('browser');
 	    }
 	    if ($request->has('private_msg')) {
 	        $setting->private_msg = $request->input('private_msg');
@@ -1505,14 +1505,26 @@ class UserController extends Controller {
 	    if ($request->has('comment_wallpaper')) {
 	        $setting->comment_wallpaper = $request->input('comment_wallpaper');
 	    }
-	    if ($request->has('post_response')) {
-	        $setting->post_response = $request->input('post_response');
-	    }
 	    if ($request->has('comment_profile')) {
 	        $setting->comment_profile = $request->input('comment_profile');
 	    }
-	    if ($request->has('favorite')) {
-	        $setting->favorite = $request->input('favorite');
+	    if ($request->has('follow_profile')) {
+	        $setting->follow_profile = $request->input('follow_profile');
+	    }
+	    if ($request->has('favorite_wallpaper')) {
+	        $setting->favorite_wallpaper = $request->input('favorite_wallpaper');
+	    }
+	    if ($request->has('wallpaper_gratuity')) {
+	        $setting->wallpaper_gratuity = $request->input('wallpaper_gratuity');
+	    }
+	    if ($request->has('achievement')) {
+	        $setting->achievement = $request->input('achievement');
+	    }
+	    if ($request->has('follower_levelup')) {
+	        $setting->follower_levelup = $request->input('follower_levelup');
+	    }
+	    if ($request->has('newsletter')) {
+	        $setting->newsletter = $request->input('newsletter');
 	    }
 	    $setting->save();
 
