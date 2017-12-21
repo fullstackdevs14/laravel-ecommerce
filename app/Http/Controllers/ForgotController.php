@@ -23,6 +23,7 @@ class ForgotController extends Controller
         // get user email instance from variable
         $user = User_Email::where('email', $email)->first();
         if($user) {
+            $user = User::where('id', $user->user_id)->first();
             $validateEmail = new ForgotPassword();
             $url = env('FORGOT_PASSWORD');
             $url .= $user->token;
