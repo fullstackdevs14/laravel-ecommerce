@@ -208,6 +208,10 @@ Route::post('/getwallpaperreportlist', [
 	'uses' => 'ImageController@getWallpaperReportList'
 ]);
 
+Route::post('/getuserreportlist', [
+	'uses' => 'UserController@getUserReportList'
+]);
+
 Route::post('/savefavtree', [
 	'uses' => 'ImageController@saveFavtree'
 ]);
@@ -411,4 +415,8 @@ Route::post('/removetag', [
 
 Route::post('/removewallpaper_report', [
 	'uses' => 'ImageController@removeWallpaper_Report'
+]);
+
+Route::post('/getreportactivity', [
+	'uses' => 'ImageController@getReportActivity'
 ]);

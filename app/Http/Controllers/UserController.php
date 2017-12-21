@@ -1607,4 +1607,16 @@ class UserController extends Controller {
             "result" => "Success"
             ], 200);
     }
+	public function getUserReportList(Request $request)
+    {
+        $query = User_Report::leftJoin('users', 'users.id','=','user__reports.user_id')
+                 ->select('user__reports.content', 'user__reports.is_solved', 'users.*')
+                 ->paginate(30);
+
+        // return JSON data
+        return Response()->json([
+          'result' => $query,
+          'total' => $query->total()
+          ], 200);       
+    }	
 }
