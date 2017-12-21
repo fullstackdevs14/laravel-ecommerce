@@ -1563,8 +1563,10 @@ class UserController extends Controller {
 			#$text = 
 		} else if ($type === 2 && $setting->comment_wallpaper) { // Comment on wallpaper
 			#$text = 
-		} else if ($type === 1 && $setting->favorite) { // Follow profile
+		} else if ($type === 1 && $setting->follow_profile) { // Follow profile
 	        #$text = 
+	    } else if ($type === 6 && $setting->favorite_wallpaper) {
+	    	#$text = 
 	    }
 
 	    /* forward email */
