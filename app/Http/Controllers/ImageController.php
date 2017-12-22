@@ -162,18 +162,22 @@ class ImageController extends Controller
                     ], 200);
             }
 
+            $file_stream = file_get_contents($photo);
             // save Image to the s3 Cache
             $s3 = Storage::disk('s3');
-            $s3->put($filename, file_get_contents($photo), 'public');
+            $s3->put($filename, $file_stream, 'public');
 
             // $s3->put('uploads/'. $filename, fopen($photo, 'r+'), 'public');
 
             $thumbnails = Storage::disk('thumbnails');
-            
             $manager = new ImageManager(array('driver' => 'imagick'));
-            $thumb_photo = Image::make($photo)->fit(150, 150);
+            $thumb_photo = Image::make($file_stream)->fit(150, 150);
+            return 'haha';            
+
             $resource = $thumb_photo->stream()->detach();
             $thumbnails->put($filename, $resource, 'public');
+
+            
 
             $thumb_photo = Image::make($photo)->fit(450, intval(450*$orig_height/$orig_width));
             $resource = $thumb_photo->stream()->detach();
