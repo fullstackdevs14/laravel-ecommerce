@@ -20,6 +20,7 @@ use App\Models\Image\Gallery;
 use App\Models\Image\Gallery_Follows;
 use App\Models\Image\Group_Follows;
 use App\Models\Image\Gallery_group;
+use App\Models\Image\Thumbnail;
 
 use App\Models\User\User_Ignore;
 use App\Models\User\User_Follow;
@@ -81,6 +82,7 @@ class ImageController extends Controller
         $image_id = $request->input('img_id');
         $width = $request->input('width');
         $height = $request->input('height');
+        $type = $request->input('croptype');
 
         $image = ImageModel::find($image_id);
         // s3 bucket variables
@@ -97,24 +99,12 @@ class ImageController extends Controller
         // check if time is expired
         if(!$cache_s3->has($cache_url)) 
         {
-            // recreate cache file
+            /* crop file */
             $url = $s3->get($image->s3_id);
-            
-            $retval = new \Imagick();
-            $retval->readImageBlob($url);
-            
-            // create Entropy cropping object  
-            $entropy_image = $retval;
-
-            $cropper = new CropEntropy($entropy_image);
-            $cache_photo = $cropper->resizeAndCrop($width, $height);
-            $cache_photo->setImageFormat('png');
-
-            if(!$cache_photo) {
-                throw new \Exception("Failed to resize image");
-            }
-            // $cache_photo = Image::make($url)->fit($width, $height);
-            $resource = $cache_photo->getImageBlob();
+            if(!$type)
+                $resource = Thumbnail::crop($url, $width, $height);
+            else
+                $resource = $url;
             $cache_s3->put($cache_url, $resource, [ 'visibility' => 'public', 'Expires' => '+20 minutes' ]);
         }
         
@@ -143,18 +133,19 @@ class ImageController extends Controller
     public function store(Request $request)
     {
         if($request->hasFile('photo') && $request->input('uid')){
+            /* file attached */
             $photo = $request->file('photo');
-
+            
+            /* configuration for cropping & upload to s3 bucket */
             $originName = $photo->getClientOriginalName();
             $title = explode('.', $originName)[0];
             $title = ucwords(preg_replace('/[_-]/', ' ', $title));
             $file_size = $photo->getClientSize();
-
             $filename = time() . "." . $photo->getClientOriginalExtension();
-
+            /* get image width and height */
             list($orig_width, $orig_height) = getimagesize($photo);
 
-            // set Image limitation(1024 * 768)
+            /* set image min limitation(1024 * 768) */
             if ($orig_width<1024 && $orig_height<768)
             {
                 return response()->json([
@@ -162,32 +153,24 @@ class ImageController extends Controller
                     ], 200);
             }
 
+            /* ready for upload */
             $file_stream = file_get_contents($photo);
-            // save Image to the s3 Cache
+            /* process */
             $s3 = Storage::disk('s3');
             $s3->put($filename, $file_stream, 'public');
-
-            // $s3->put('uploads/'. $filename, fopen($photo, 'r+'), 'public');
-
+            /* thumbnail crop */
             $thumbnails = Storage::disk('thumbnails');
-            $manager = new ImageManager(array('driver' => 'imagick'));
-            $thumb_photo = Image::make($file_stream)->fit(150, 150);
-            return 'haha';            
-
-            $resource = $thumb_photo->stream()->detach();
+            $resource = Thumbnail::crop($file_stream, 150, 150);
             $thumbnails->put($filename, $resource, 'public');
-
-            
-
-            $thumb_photo = Image::make($photo)->fit(450, intval(450*$orig_height/$orig_width));
-            $resource = $thumb_photo->stream()->detach();
-
+            /* medium thumbnail crop */
+            $resource = Thumbnail::crop($file_stream, 450, intval(450*$orig_height/$orig_width));
+            /* upload process */
             $index = strpos($filename, ".");
             $thumb_filename = substr_replace($filename, "-bigthumbnail", $index, 0);
             $thumbnails->put($thumb_filename, $resource, 'public');
 
             /**
-             *  Image Rekognition
+             *  image recognition AWS API
              */
             try {
                 $rekognition = new RekognitionClient([
@@ -260,10 +243,7 @@ class ImageController extends Controller
                     ]);
             }
 
-            // End Rekognition
-            /**
-             *  Store in Databse
-             */
+            /* store in database */
             $image = new ImageModel([
                 's3_id' => $filename,
                 'title' => $title,
@@ -279,7 +259,7 @@ class ImageController extends Controller
             $user->uploads = $user->uploads + 1;
             $user->save();
 
-            // Store in thumbnail
+            // store in thumbnail
             $image_thumbnail = new Image_thumbnail([
                 's3_id' => $filename,
                 'image_id' => $image->id,
@@ -631,48 +611,40 @@ class ImageController extends Controller
         $ip = $request->input('ip');
         $user_id = $request->input('user_id');
 
-        // check if image with ID is available
+        /* check if image exists */
         $image = ImageModel::find($image_id);
+        /* if not found */
         if(!$image)
         {
             return Response()->json([
             'code' => -1
-            ], 404);    // return 404 error Image not found
+            ], 404);
         }
 
-        // if image is available, register with new ip
+        /* if image is available, register view counter with new ip */
         $imgcomment = new Image_View([
             'image_id' => $image_id,
             'ip_address' => $ip
             ]);
         $imgcomment->save();
 
-        // s3 bucket variables
+        /* s3 bucket process */
         $s3 = Storage::disk('s3');
         $cache_s3 = Storage::disk('thumbnails');
-
-        /**
-        **
-            render Width * Height pre-cached Image based on resolution of the browser screen
-        **
-        **/            
-        // capture s3 cache image
+        /* fetch image */
         $index = strpos($image->s3_id, ".");
-        // create cached Image        
         $cache_url = substr_replace($image->s3_id, "-".$width."x".$height."-DesktopNexus", $index, 0);
-        $url = $s3->url($image->s3_id);
 
         // check if time is expired
         if(!$cache_s3->has($cache_url)) 
         {
             // recreate cache file
-            $url = $s3->url($image->s3_id);
-            $cache_photo = Image::make($url)->fit($width, $height);
-            $resource = $cache_photo->stream()->detach();
+            $url = $s3->get($image->s3_id);
+            $resource = Thumbnail::crop($url, $width, $height);
             $cache_s3->put($cache_url, $resource, [ 'visibility' => 'public', 'Expires' => '+20 minutes' ]);
         }
 
-        // create signed URL
+        /* created signed url for security */
         $client = $cache_s3->getDriver()->getAdapter()->getClient();
         $expiry = "+1 minutes";
 
@@ -685,7 +657,7 @@ class ImageController extends Controller
 
         /**
         **
-            Pops up required information of wallpaper (Image, Tags, Recent Groups)
+            pops up required information of wallpaper (Image, Tags, Recent Groups)
         **
         **/            
         // customized thumbnail url
@@ -703,11 +675,11 @@ class ImageController extends Controller
         ->where('group_image.image_id', $image_id)
         ->select('groups.name as name','avatar as s3_id','groups.slug')->get();
 
-        // Get recently uploaded image
+        /* get recently uploaded image */
         $recent_group = ImageModel::join('group_image','group_image.image_id','=','images.id')
                         ->select('group_image.group_id')->where('images.id', $image_id)->get();
         
-        // Get popular in each images (5)
+        /* get popular in each images (5) */
         $arr = [];
         foreach ($recent_group as $idx) {
             $query = ImageModel::join('group_image','group_image.image_id','=','images.id')
@@ -722,7 +694,7 @@ class ImageController extends Controller
             array_push($arr, $temp);
         }                     
 
-        //  get Uploader
+        /*  get uploader */
         $uploader = User::where('id', $image->upload_by)->first();
         if (!$uploader)
         {
@@ -736,11 +708,7 @@ class ImageController extends Controller
                 ->count('user_id');
         }
 
-        /*
-        **
-            get Comments
-        **
-        */
+        /* get comments */
         $imgcomments = Image_comment::where('image_id', $image_id)->orderBy('created_at', 'desc')->get();
         foreach ($imgcomments as $imgcomment) {
             $imgcomment->now = $this->now($imgcomment->created_at);
@@ -755,7 +723,7 @@ class ImageController extends Controller
         
         /*
         **
-            get Available groups followed by Uploader
+            get available groups followed by uploader
         **
         */
         $group = Group::join('group_follows','groups.id','=','group_follows.group_id')
@@ -2304,7 +2272,9 @@ class ImageController extends Controller
                     ->where('images.id', $item->target_id)
                     ->select('images.*', 'users.id as userid', 'users.*', 'images.likes as likes', 'images.id as id', 'images.created_at as created_at')
                     ->first();
+            if(!$image) continue;
             $item = $image;
+
             // get view
             $image_view = Image_View::where('image_id','=',$item->id)
                           ->get();
@@ -2313,7 +2283,7 @@ class ImageController extends Controller
                          ->get();
             // get comment
             $image_comment = Image_comment::where('image_id', '=', $item->id)
-                             ->get();
+                             ->get();                             
             $filename = $image->s3_id;
             $index = strpos($filename, ".");
             $thumb_filename = substr_replace($filename, "-bigthumbnail", $index, 0);
@@ -2469,10 +2439,10 @@ class ImageController extends Controller
                  ->orderBy('reports.created_at')
                  ->limit(10)
                  ->get();
-        $user_query = User_Report::leftJoin('users', 'users.id','=','user__reports.user_id')
-                 ->select('user__reports.content', 'user__reports.is_solved', 'users.*')
-                 ->where('user__reports.is_solved','>','0')
-                 ->orderBy('user__reports.created_at')
+        $user_query = User_Report::leftJoin('users', 'users.id','=','user_reports.user_id')
+                 ->select('user_reports.content', 'user_reports.is_solved', 'users.*')
+                 ->where('user_reports.is_solved','>','0')
+                 ->orderBy('user_reports.created_at')
                  ->limit(10)
                  ->get();
         // put Sorts on Collection                  

@@ -1563,10 +1563,8 @@ class UserController extends Controller {
 			#$text = 
 		} else if ($type === 2 && $setting->comment_wallpaper) { // Comment on wallpaper
 			#$text = 
-		} else if ($type === 1 && $setting->follow_profile) { // Follow profile
+		} else if ($type === 1 && $setting->favorite) { // Follow profile
 	        #$text = 
-	    } else if ($type === 6 && $setting->favorite_wallpaper) {
-	    	#$text = 
 	    }
 
 	    /* forward email */
@@ -1623,8 +1621,8 @@ class UserController extends Controller {
     }
 	public function getUserReportList(Request $request)
     {
-        $query = User_Report::leftJoin('users', 'users.id','=','user__reports.user_id')
-                 ->select('user__reports.content', 'user__reports.is_solved', 'users.*')
+        $query = User_Report::leftJoin('users', 'users.id','=','user_reports.user_id')
+                 ->select('user_reports.content', 'user_reports.is_solved', 'users.*')
                  ->paginate(30);
 
         // return JSON data

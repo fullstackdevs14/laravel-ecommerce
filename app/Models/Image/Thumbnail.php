@@ -58,6 +58,23 @@ class Thumbnail extends \Eloquent
         ]);
     }
     
+    static public function crop($filestream, $width, $height)
+    {
+        $retval = new \Imagick();
+        $retval->readImageBlob($filestream);
+        // create Entropy cropping object  
+        $entropy_image = $retval;
+        $cropper = new CropEntropy($entropy_image);
+        $cache_photo = $cropper->resizeAndCrop($width, $height);
+        $cache_photo->setImageFormat('png');
+
+        if(!$cache_photo) {
+            throw new \Exception("Failed to resize image");
+        }
+        $resource = $cache_photo->getImageBlob();
+        return $resource;
+    }
+
     static public function generate(Image $imageModel, $width, $height)
     {
         $thumbnailModel = new static();
