@@ -629,6 +629,7 @@ class ImageController extends Controller
         $width = $request->input('width');
         $height = $request->input('height');
         $ip = $request->input('ip');
+        $user_id = $request->input('user_id');
 
         // check if image with ID is available
         $image = ImageModel::find($image_id);
@@ -728,6 +729,11 @@ class ImageController extends Controller
             return Response()->json([
                 'code' => -1
             ], 500);    // when uploader is not available, 500 internal server
+        }
+        if ($user_id) {
+            $uploader['isFollowed'] = User_Follow::where('user_id', $user_id)
+                ->where('follower_id', $uploader->id)
+                ->count('user_id');
         }
 
         /*
