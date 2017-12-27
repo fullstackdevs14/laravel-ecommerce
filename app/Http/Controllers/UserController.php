@@ -817,7 +817,7 @@ class UserController extends Controller {
 		$query = User_Ignore::where('user_id', $user_id)
 			->where('banned_id')
 			->exists();
-		if ($query) {
+		if (!$query) {
 			$user_ignore = new User_Ignore([
 				'user_id' => $user_id,
 				'banned_id' => $user->id,
@@ -825,8 +825,6 @@ class UserController extends Controller {
 			$user_ignore->save();
 		}
 
-		// save to Database
-		$user_ignore->save();
 		return Response()->json([
 				"result" => 1
 				], 200);
@@ -1106,26 +1104,18 @@ class UserController extends Controller {
 		$user_id = $request->input('user_id');
 		$filter = strtolower($request->input('filter'));
 
-		$followers = User_Follow::join('users', 'users.id', '=', 'user_follows.user_id')
-		->where('follower_id', $user_id)
-		->whereRaw("(lower(concat(`users`.`firstname`, ' ', `users`.`lastname`)) like '%".$filter."%' or lower(`users`.`username`) like '%".$filter."%')")
-		->select('users.id', 'users.avatar', 'users.firstname', 'users.lastname', 'users.username')
-		->limit(5)->get();
-		$following = User_Follow::join('users', 'users.id', '=', 'user_follows.follower_id')
-		->where('user_id', $user_id)
-		->whereRaw("(lower(concat(`users`.`firstname`, ' ', `users`.`lastname`)) like '%".$filter."%' or lower(`users`.`username`) like '%".$filter."%')")
-		->select('users.id', 'users.avatar', 'users.firstname', 'users.lastname', 'users.username')
-		->limit(5)->get();
-
-		if (is_array($followers) && is_array($following))
-			$connections = array_merge($followers, $following);
-		else if (is_array($followers))
-			$connections = $followers;
-		else
-			$connections = $following;
+		$ban_list = User_Ignore::where('user_id', $user_id)
+			->select('banned_id')->get();
+		$list = [$user_id];
+		foreach ($ban_list as $item) {
+			array_push($list, $item->banned_id);
+		}
+		$users = User::whereNotIn('id', $list)
+			->whereRaw("lower(concat(firstname,' ',lastname)) like '%".$filter."%' or username like '%".$filter."%'")
+			->limit(5)->get();
 
 		return Response()->json([
-			"result" => $connections,
+			"result" => $users
 			], 200);
 	}
 
