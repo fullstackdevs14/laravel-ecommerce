@@ -420,3 +420,8 @@ Route::post('/removewallpaper_report', [
 Route::post('/getreportactivity', [
 	'uses' => 'ImageController@getReportActivity'
 ]);
+
+Route::prefix('payment')->middleware(['jwt.auth'])->group(function() {
+	Route::get('methods', 'PaymentController@getMethods');
+	Route::post('methods', 'PaymentController@addMethod');
+});

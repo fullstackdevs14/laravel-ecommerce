@@ -21,9 +21,11 @@ use App\Models\User\User_Report;
 use Illuminate\Http\Request;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Events\Event;
-use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Support\Facades\Storage;
 use JWTAuth;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use Tymon\JWTAuth\Exceptions\TokenInvalidException;
+use Tymon\JWTAuth\Exceptions\JWTException;
 
 use Mail;
 use App\Mail\ConfirmationEmail;
@@ -39,32 +41,31 @@ class UserController extends Controller {
 
 	public function checkSession(Request $request)
 	{
-		// crypted Token
-        $encrypt = $request->input('token');
-        $decrypt = Crypt::decrypt($encrypt);
-        // decrypt parameter
-        $data = json_decode($decrypt);
-        $user_id = $data->user_id;
-        $time = $data->time;
+		try {
+			$user = JWTAuth::parseToken()->authenticate();
 
-        $user = User::where('id', $user_id)->first();
-        if(!$user)
-        {
-        	return Response()->json([
-                'code' => -1
-            ], 400);	
-        }
-        // create session expired after 15 min
-        if(intval((strtotime(date('Y-m-d H:i:s'))-strtotime($time->date))/(60*60))>5)
-        {
-            return Response()->json([
-                'code' => 0
-            ], 400);
-        }
+			if (!$user ) {
+				return response()->json(['user_not_found'], 404);
+			}
+	
+		} catch (TokenExpiredException $e) {
 
-        return Response()->json([
-                'code' => 1
-            ]);
+			return response()->json(['token_expired'], $e->getStatusCode());
+
+		} catch (TokenInvalidException $e) {
+	
+			return response()->json(['token_invalid'], $e->getStatusCode());
+	
+		} catch (JWTException $e) {
+	
+			return response()->json(['token_absent'], $e->getStatusCode());
+	
+		}
+	
+		// the token is valid and we have found the user via the sub claim
+		return response()->json([
+			"success" => 1
+		]);
 	}
 
 	public function signup(Request $request)
@@ -143,11 +144,7 @@ class UserController extends Controller {
 		if($user_email->verified_at){
 			// create security token
 			$time = Carbon::now();
-			$token = ([
-				'user_id'=> $user->id,
-				'time' => $time
-				]);
-			$encrypted = Crypt::encrypt(json_encode($token));
+			$encrypted = JWTAuth::fromUser($user);
 
 			return response()->json([
 				'user' => $user,
