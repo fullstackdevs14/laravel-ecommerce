@@ -8,6 +8,6 @@ class User_Follow extends Model
 {
     protected $table = "user_follows";
     protected $fillable = [
-    	'user_id', 'follower_id'
+    	'user_id', 'follower_id', 'ip_address', 'last_action',
     ];
 }
