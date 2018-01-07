@@ -15,7 +15,7 @@ class Group extends Model
 
     protected $table = "groups";
     protected $fillable = [
-        'name', 'slug', 'status', 'avatar', 'cover_img', 'description', 'owner_id', 'primary_image_id', 'image_count', 'gallery_id',
+        'name', 'slug', 'status', 'avatar', 'cover_img', 'description', 'owner_id', 'primary_image_id', 'image_count', 'gallery_id', 'ip_address', 'last_action',
     ];
 
     public function getCommentTexts()

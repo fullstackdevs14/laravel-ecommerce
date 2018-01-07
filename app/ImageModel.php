@@ -15,7 +15,7 @@ class ImageModel extends Model
 
 	protected $table = "images";
    	protected $fillable = [
-        's3_id', 's3_cached', 'title', 'description', 'downloads', 'favorites', 'upload_by', 'upload_date', 'orig_width', 'orig_height', 'file_size', 'likes', 'shares'
+        's3_id', 's3_cached', 'title', 'description', 'downloads', 'favorites', 'upload_by', 'upload_date', 'orig_width', 'orig_height', 'file_size', 'likes', 'shares', 'ip_address', 'last_action',
     ];
 
     public function getCommentTexts()

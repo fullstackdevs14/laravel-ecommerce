@@ -8,6 +8,6 @@ class User_like extends Model
 {
     protected $table = "user_likes";
     protected $fillable = [
-    	'user_id', 'image_id',
+    	'user_id', 'image_id', 'ip_address', 'last_action',
     ];
 }

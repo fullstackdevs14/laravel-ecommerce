@@ -131,11 +131,12 @@ class ImageController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
-    {
+    {   
         if($request->hasFile('photo') && $request->input('uid')){
             /* file attached */
             $photo = $request->file('photo');
-            
+            $ip_address = $request->input('ip_address');
+
             /* configuration for cropping & upload to s3 bucket */
             $originName = $photo->getClientOriginalName();
             $title = explode('.', $originName)[0];
@@ -251,7 +252,9 @@ class ImageController extends Controller
                 'upload_date' => Carbon::now(),
                 'orig_height' => $orig_height,
                 'orig_width' => $orig_width,
-                'file_size' => $file_size
+                'file_size' => $file_size,
+                'ip_address' => $ip_address,
+                'last_action' => Carbon::now()
                 ]);
             $image->save();
 
@@ -316,23 +319,24 @@ class ImageController extends Controller
     {
 
         $url = $request -> input('url');
-
         if($request->input('uid')) {
 
-            $photo = $request -> input('url');
+            $photo = $request->input('url');
+            $ip_address = $request->input('ip_address');
 
             $originName = substr($url, strrpos($url, '/') + 1);
             $title = explode('.', $originName)[0];
             $title = ucwords(preg_replace('/[_-]/', ' ', $title));
             $file_size = getimagesize($url);
 
-
             $extension = pathinfo($url, PATHINFO_EXTENSION);
             $filename = time() . "." . $extension;
 
             $orig_width = $file_size[0];
             $orig_height = $file_size[1];
-            $file_size = strlen(file_get_contents($photo));
+
+            $file_stream = file_get_contents($photo);
+            $file_size = strlen($file_stream);
 
             // set Image limitation(1024 * 768)
             if ($orig_width<1024 && $orig_height<768)
@@ -340,23 +344,17 @@ class ImageController extends Controller
                 return response()->json([
                     'code' => 0
                     ], 200);
-            }
+            }            
 
-            // save Image to the s3 Cache
+            /* process */
             $s3 = Storage::disk('s3');
-            $s3->put($filename, file_get_contents($photo), 'public');
-
-            // $s3->put('uploads/'. $filename, fopen($photo, 'r+'), 'public');
-
+            $s3->put($filename, $file_stream, 'public');
+            /* thumbnail crop */
             $thumbnails = Storage::disk('thumbnails');
-            
-            $manager = new ImageManager(array('driver' => 'imagick'));
-            $thumb_photo = Image::make($photo)->fit(150, 150);
-            $resource = $thumb_photo->stream()->detach();
+            $resource = Thumbnail::crop($file_stream, 150, 150);
             $thumbnails->put($filename, $resource, 'public');
-
-            $thumb_photo = Image::make($photo)->fit(450, intval(450*$orig_height/$orig_width));
-            $resource = $thumb_photo->stream()->detach();
+            /* medium thumbnail crop */
+            $resource = Thumbnail::crop($file_stream, 450, intval(450*$orig_height/$orig_width));
 
             $index = strpos($filename, ".");
             $thumb_filename = substr_replace($filename, "-bigthumbnail", $index, 0);
@@ -448,7 +446,9 @@ class ImageController extends Controller
                 'upload_date' => Carbon::now(),
                 'orig_height' => $orig_height,
                 'orig_width' => $orig_width,
-                'file_size' => $file_size
+                'file_size' => $file_size,
+                'ip_address' => $ip_address,
+                'last_action' => Carbon::now()
                 ]);
             $image->save();
 
@@ -578,7 +578,7 @@ class ImageController extends Controller
             $query = ImageModel::join('group_image','group_image.image_id','=','images.id')
                                 ->where('group_image.group_id', $idx->group_id)
                                 ->select('images.*','group_image.group_id')
-                                ->orderBy('images.downloads')->limit(5)->get();
+                                ->orderBy('images.downloads')->limit(6)->get();
             $temp['key']=$idx->group_id;
             $temp['object']=$query;
             array_push($arr, $temp);
@@ -685,7 +685,7 @@ class ImageController extends Controller
             $query = ImageModel::join('group_image','group_image.image_id','=','images.id')
                                 ->where('group_image.group_id', $idx->group_id)
                                 ->select('images.*','group_image.group_id')
-                                ->orderBy('images.downloads')->limit(5)->get();
+                                ->orderBy('images.downloads')->limit(6)->get();
             $slug = Group::where('name', $idx->group_id)
                     ->select('slug')->first();
             $temp['key'] = $idx->group_id;
@@ -780,8 +780,12 @@ class ImageController extends Controller
     /**
      *  Update the like of image
      */
-    public function like($id, $user_id)
+    public function like(Request $request)
     {
+        $id = $request->input('img_id');
+        $user_id = $request->input('user_id');
+        $ip_address = $request->input('ip_address');
+
         $image = ImageModel::find($id);
         $user_like = User_like::where('image_id', $id)->where('user_id', $user_id)->first();
         // if already like by user
@@ -801,7 +805,9 @@ class ImageController extends Controller
         $image->save();
         $new_like = new User_like([
             'user_id' => $user_id,
-            'image_id' => $id
+            'image_id' => $id,
+            'ip_address' => $ip_address,
+            'last_action' => Carbon::now()
             ]);
         $new_like->save();
         return Response()->json([
@@ -853,7 +859,7 @@ class ImageController extends Controller
     public function newComment(Request $request)
     {
         $author_id = $request->input('author');
-
+        $ip_address = $request->input('ip_address');
         $author = User::find($author_id);
         if (!$author)
         {
@@ -869,7 +875,9 @@ class ImageController extends Controller
             'content' => $request->input('newcmt'),
             'sticker' => $request->input('stick'),
             'author_img' => $author->avatar,
-            'author_name' => $author->username
+            'author_name' => $author->username,
+            'ip_address' => $ip_address,
+            'last_action' => Carbon::now()
             ]);
         $imgcomment->save();
         $imgcomment->now = $this->now($imgcomment->created_at);
@@ -974,6 +982,7 @@ class ImageController extends Controller
         // get active & favorite Nodes
         $active_node = $request->input('active_node');
         $user_id = $request->input('user_id');
+        $ip_address = $request->input('ip_address');
 
         $image_model = ImageModel::find($img_id);
 
@@ -996,7 +1005,9 @@ class ImageController extends Controller
         $favImage = new FavImage([
             'folder_id' => $active_node,
             'image_id' => $img_id,
-            'user_id' => $user_id
+            'user_id' => $user_id,
+            'ip_address' => $ip_address,
+            'last_action' => Carbon::now()
             ]);
         $favImage->save();
 
@@ -1019,13 +1030,16 @@ class ImageController extends Controller
         $category = $request->input('category');
         $content = $request->input('content');
         $category_type = $request->input('category_type');
+        $ip_address = $request->input('ip_address');
 
         // report Object create 
         $report = new Report([
             'image_id' => $reqImage,
             'category' => $category,
             'content' => $content,
-            'type' => $category_type
+            'type' => $category_type,
+            'ip_address' => $ip_address,
+            'last_action' => Carbon::now()
             ]);
         // database save
         $report->save();
@@ -1237,9 +1251,13 @@ class ImageController extends Controller
             $query = ImageModel::join('group_image','group_image.image_id','=','images.id')
                                 ->where('group_image.group_id', $idx->group_id)
                                 ->select('images.*','group_image.group_id')
-                                ->orderBy('images.downloads')->limit(5)->get();
-            $temp['key']=$idx->group_id;
-            $temp['object']=$query;
+                                ->orderBy('images.downloads')->limit(6)->get();
+            $slug = Group::where('name', $idx->group_id)
+                    ->select('slug')->first();
+
+            $temp['key'] = $idx->group_id;
+            $temp['slug'] = $slug->slug; 
+            $temp['object'] = $query;
             array_push($arr, $temp);
         }   
 
@@ -1522,12 +1540,11 @@ class ImageController extends Controller
     {
 
         $image_id = $request->input('img_id');
-        $uid = $request->input('user_id');
+        // $uid = $request->input('user_id');
         $ip_address = $request->input('ip');
 
         // check if same user downloads the same ip
         $download = User_Social::where('ip_address', $ip_address)
-                                 ->where('user_id', $uid)
                                  ->where('image_id', $image_id)
                                  ->first();
         
@@ -1549,8 +1566,8 @@ class ImageController extends Controller
         {
             $download = new User_Social([
                 'ip_address' => $ip_address,
-                'user_id' => $uid,
-                'image_id' => $image_id
+                'image_id' => $image_id,
+                'last_action' => Carbon::now()
             ]);
 
             $download->save();
@@ -1607,8 +1624,9 @@ class ImageController extends Controller
     {
         $gallery_name = $request->input('gallery');
         $user_id = $request->input('user_id');
+        $ip_address = $request->input('ip_address');
         $gallery = Gallery::where('name', $gallery_name)->first();
-        
+           
         // gallery not exist
         if(!$gallery) 
         {
@@ -1634,7 +1652,9 @@ class ImageController extends Controller
         {
             $gallery_follow = DB::table('gallery_follows')->insert([
                 'gallery_id' => $gallery->id,
-                'follower_id' => $user_id
+                'follower_id' => $user_id,
+                'ip_address' => $ip_address,
+                'last_action' => Carbon::now()
             ]);
         }
 
@@ -1648,7 +1668,8 @@ class ImageController extends Controller
         $group_name = $request->input('group');
         $user_id = $request->input('user_id');
         $group = Group::where('name', $group_name)->first();
-        
+        $ip_address = $request->input('ip_address');
+
         // gallery not exist
         if(!$group) 
         {
@@ -1674,7 +1695,9 @@ class ImageController extends Controller
         {
             $group_follow = DB::table('group_follows')->insert([
                 'group_id' => $group->id,
-                'follower_id' => $user_id
+                'follower_id' => $user_id,
+                'ip_address' => $ip_address,
+                'last_action' => Carbon::now()
             ]);
 
         }
@@ -1891,6 +1914,7 @@ class ImageController extends Controller
         $detail = $request->input('detail');
         $gallery = $request->input('gallery');
         $owner = $request->input('owner');
+        $ip_address = $request->input('ip_address');
         $group = Group::where('name', $name)->first();
         if($group)
         {
@@ -1911,7 +1935,9 @@ class ImageController extends Controller
                 'status' => 'active',
                 'description' => $overview,
                 'owner_id' => $owner,
-                'gallery_id' => $gallery
+                'gallery_id' => $gallery,
+                'ip_address' => $ip_address,
+                'last_action' => Carbon::now()
                 ]);
         $group->save();
 

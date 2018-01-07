@@ -151,7 +151,7 @@ Route::post('/image/getimage', [
 	'uses' => 'ImageController@getImage'
 ]);
 
-Route::get('/image/like/{id}/{user_id}', [
+Route::post('/image/like', [
 	'uses' => 'ImageController@like'
 ]);
 // Image comment section

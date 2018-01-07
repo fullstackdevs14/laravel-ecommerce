@@ -9,6 +9,6 @@ class User_Social extends Model
     //
     protected $table = "user_social";
     protected $fillable = [
-    	"ip_address","user_id", "image_id", "created_at"
+    	"ip_address","user_id", "image_id", "created_at", 'last_action',
     ];
 }

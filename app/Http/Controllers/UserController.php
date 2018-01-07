@@ -91,7 +91,9 @@ class UserController extends Controller {
 			'lastname' => $request->input('lastname'),
 			'username' => $request->input('username'),
 			'avatar' => env('AVATAR'),
-			'password' => bcrypt($request->input('password'))
+			'password' => bcrypt($request->input('password')),
+			'join_ip' => $request->input('ip_address'),
+			'joined' => Carbon::now()
 			]);
 
 		$user->save();
@@ -144,6 +146,9 @@ class UserController extends Controller {
 		if($user_email->verified_at){
 			// create security token
 			$time = Carbon::now();
+			$user->last_login_ip = $request->input('ip_address');
+			$user->last_login = Carbon::now();
+			$user->save();
 			$encrypted = JWTAuth::fromUser($user);
 
 			return response()->json([
@@ -503,8 +508,7 @@ class UserController extends Controller {
 		return response()->json([
 			'user' => $user,
 			'report' => $all,
-			'follow' => $follow,
-			'user'
+			'follow' => $follow
 			]);
 	}
 	/**	
@@ -515,6 +519,7 @@ class UserController extends Controller {
 		$email = $request->input('email');
 		$accessToken = $request->input('accessToken');
 		$providerId = $request->input('providerId');
+		$ip_address = $request->input('ip_address');
 		// $user = User_oAuth::where('user_oauth_tokens.token', $accessToken)->where('user_oauth_tokens.driver', $providerId)->get();
 		// return $user;
 
@@ -546,7 +551,11 @@ class UserController extends Controller {
 				'time' => $time
 				]);
 			$encrypted = Crypt::encrypt(json_encode($token));
-
+			/* last log in & time */
+			$user_temp->last_login_ip = $request->input('ip_address');
+			$user_temp->last_login = Carbon::now();
+			$user_temp->save();
+					
 			return Response()->json([
 				'result' => $user_temp,
 				'token' => $encrypted
@@ -574,7 +583,9 @@ class UserController extends Controller {
 			'username' => $request->input('username'),
 			'avatar' => env('AVATAR'),
 			'password' => bcrypt($request->input('password')),
-			'token' => $token = md5(uniqid())
+			'token' => $token = md5(uniqid()),
+			'join_ip' => $request->input('ip_address'),
+			'joined' => Carbon::now()
 			]);
 		$user->save();
 
@@ -740,7 +751,9 @@ class UserController extends Controller {
 		$post = new Post([
 			'user_id' => $request->input('user_id'),
 			'author_id' => $request->input('author_id'),
-			'content' => $request->input('post')
+			'content' => $request->input('post'),
+			'ip_address' => $request->input('ip_address'),
+			'last_action' => Carbon::now()
 			]);
 		$post->save();
 
@@ -801,6 +814,7 @@ class UserController extends Controller {
 	{
 		$user_id = $request->input('uid');
 		$block_name = $request->input('block_name');
+		$ip_address = $request->input('ip_address');
 
 		$user = User::whereusername($block_name)->first();
 		// if user not exist
@@ -818,6 +832,8 @@ class UserController extends Controller {
 			$user_ignore = new User_Ignore([
 				'user_id' => $user_id,
 				'banned_id' => $user->id,
+				'ip_address' => $ip_address,
+				'last_action' => Carbon::now()
 				]);
 			$user_ignore->save();
 		}
@@ -831,6 +847,7 @@ class UserController extends Controller {
 		$user_id = $request->input('uid');
 		$block_name = $request->input('block_name');
 		$message = $request->input('message');
+		$ip_address = $request->input('ip_address');
 
 		$user = User::whereusername($block_name)->first();
 		// if user not exist
@@ -857,6 +874,8 @@ class UserController extends Controller {
 		$report = new User_Report([
             'user_id' => $user->id,
             'content' => $message,
+            'ip_address' => $ip_address,
+            'last_action' => Carbon::now()
             ]);
 		$report->save();
 
@@ -1579,13 +1598,17 @@ class UserController extends Controller {
     {
         $user_id = $request->input('user_id');
         $follower_id = $request->input('follower_id');
+        $ip_address= $request->input('ip_address');
+
         if(User_Follow::where('user_id', $user_id)->where('follower_id', $follower_id)->first())
             return Response()->json([
                 "result" => "Already"
                 ], 200);
         $user_follow = new User_Follow([
             'user_id' => $request->input('user_id'),
-            'follower_id' => $request->input('follower_id')
+            'follower_id' => $request->input('follower_id'),
+            'ip_address' => $ip_address,
+            'last_action' => Carbon::now()
             ]);
 
         $user_follow->save();

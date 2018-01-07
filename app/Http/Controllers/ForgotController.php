@@ -36,12 +36,14 @@ class ForgotController extends Controller
     
             Mail::queue($validateEmail);
             return Response()->json([
-                "result" => "Successfully sent a password reset link to your email!"
+                "result" => "Successfully sent a password reset link to your email!",
+                "code" => 1
             ]);
         }
         else
             return Response()->json([
-                "result" => "Could not locate an account with that email address. Please double-check it and try again."
+                "result" => "Could not locate an account with that email address. Please double-check it and try again.",
+                "code" => 0
             ]);
     }	
 
@@ -64,12 +66,14 @@ class ForgotController extends Controller
                           
             Mail::queue($validateEmail);
             return Response()->json([
-                "result" => "Successfully sent a username reminder to your email!"
+                "result" => "Successfully sent a username reminder to your email!",
+                "code" => 1
             ]);
         }
         else
             return Response()->json([
-                "result" => "Could not locate an account with that email address. Please double-check it and try again."
+                "result" => "Could not locate an account with that email address. Please double-check it and try again.",
+                "code" => 0
             ]);
     }
 
