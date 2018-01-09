@@ -21,6 +21,7 @@
         "musonza/chat": "^2.0",
         "nesbot/carbon": "^1.22",
         "stojg/crop": "^1.3",
+        "stripe/stripe-php": "^5.8",
         "torann/laravel-cloudsearch": "^0.1.5",
         "tymon/jwt-auth": "0.5.*"
     },

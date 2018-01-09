@@ -424,4 +424,7 @@ Route::post('/getreportactivity', [
 Route::prefix('payment')->middleware(['jwt.auth'])->group(function() {
 	Route::get('methods', 'PaymentController@getMethods');
 	Route::post('methods', 'PaymentController@addMethod');
+	Route::post('methods/delete', 'PaymentController@deleteMethod');
+	// Route::get('customers/all', 'PaymentController@allCustomers');
+	// Route::post('customers/delete', 'PaymentController@deleteCustomer');
 });
