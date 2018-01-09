@@ -45,7 +45,8 @@ class PaymentController extends Controller
         if ($old->exists()) {
             if ($type == 1) {
                 $oldCard = PaymentMethodStripe::where('user_id', $user->id)
-                    ->where('type', $type);
+                    ->where('type', $type)
+                    ->first();
                 $oldCard->deleteCard();
             }
         }
