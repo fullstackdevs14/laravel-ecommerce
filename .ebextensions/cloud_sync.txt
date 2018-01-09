@@ -1,0 +1,1 @@
+*/10 * * * * root /usr/bin/php artisan search:index images > /dev/null

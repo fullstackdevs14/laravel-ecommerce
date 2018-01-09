@@ -57,8 +57,8 @@ return [
     'fields' => [
         'id' => 'literal',
         'target_id' => 'int',
-        'title' => 'text',
-        'description' => 'text',
+        'title' => 'literal',
+        'description' => 'literal',
         'comments' => 'text-array',
         'tags' => 'text-array',
     ],
