@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use JWTAuth;
 use App\Models\Payment\PaymentMethod;
 use App\Models\Payment\PaymentMethodStripe;
+use App\Models\User\User_Email;
 
 class PaymentController extends Controller
 {
@@ -34,12 +35,10 @@ class PaymentController extends Controller
         $data = $request->input('data');
 
         if (!$type && !$data) {
-            return Response()->json([
-                'success' => 0,
-                'message' => 'Insufficient Information'
-            ]);
+            return $this->fail('Insufficient Information');
         }
 
+        // Delete existing method
         $old = PaymentMethod::where('user_id', $user->id)
             ->where('type', $type);
         if ($old->exists()) {
@@ -51,20 +50,25 @@ class PaymentController extends Controller
             }
         }
 
+        $user_email = User_Email::where('user_id', $user->id)
+            ->where('primary', 1)
+            ->select('email')
+            ->first();
+
+        if (!$user_email) {
+            return $this->fail('Invalid user');
+        }
+
+        // Add new method
         if ($type == 1) {
             $method = new PaymentMethodStripe();
             $method->user_id = $user->id;
-            $method->addCard($data, $user->username);
+            $method->addCard($data, $user->username, $user_email->email);
 
-            return Response()->json([
-                'success' => 1
-            ]);
+            return $this->success();
         }
 
-        return Response()->json([
-            'success' => 0,
-            'message' => 'Unsupported method'
-        ]);
+        return $this->fail('Unsupported Method');
     }
 
     public function deleteMethod(Request $request) {
@@ -77,31 +81,66 @@ class PaymentController extends Controller
                 ->first();
             $method->deleteCard();
 
-            return Response()->json([
-                'success' => 1
-            ]);
+            return $this->success();
         }
 
-        return Response()->json([
-            'success' => 0,
-            'type' => $type,
-            'message' => 'Unsupported Method'
-        ]);
+        return $this->fail('Unsupported Method');
     }
 
-    public function allCustomers(Request $request) {
-        return Response()->json([
-            'list' => PaymentMethodStripe::allCustomers()
-        ]);
+    public function buyDiamonds(Request $request) {
+        $user = JWTAuth::parseToken()->authenticate();
+        $type = $request->input('type');
+        $count = $request->input('count');
+
+        $values = [
+            "125" => 999,
+            "325" => 1999,
+            "1000" => 4999,
+            "2500" => 9999
+        ];
+
+        if(!array_key_exists($count, $values)) {
+            return $this->fail('Invalid diamond counts');
+        }
+
+        if ($type == 1) {
+            $method = PaymentMethodStripe::where('user_id', $user->id)
+                ->where('type', $type)
+                ->first();
+            $method->charge($values[$count]);
+
+            return $this->success();
+        }
+
+        return $this->fail('Unsupported Method');
     }
 
-    public function deleteCustomer(Request $request) {
-        PaymentMethodStripe::deleteCustomer(
-            $request->input('customer_id')
-        );
-
+    private function success() {
         return Response()->json([
             'success' => 1
         ]);
     }
+
+    private function fail($msg) {
+        return Response()->json([
+            'success' => 0,
+            'message' => $msg
+        ]);
+    }
+
+    // public function allCustomers(Request $request) {
+    //     return Response()->json([
+    //         'list' => PaymentMethodStripe::allCustomers()
+    //     ]);
+    // }
+
+    // public function deleteCustomer(Request $request) {
+    //     PaymentMethodStripe::deleteCustomer(
+    //         $request->input('customer_id')
+    //     );
+
+    //     return Response()->json([
+    //         'success' => 1
+    //     ]);
+    // }
 }

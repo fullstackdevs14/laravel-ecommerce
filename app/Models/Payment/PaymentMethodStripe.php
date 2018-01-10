@@ -4,6 +4,7 @@ namespace App\Models\Payment;
 
 use \Stripe\Stripe;
 use \Stripe\Customer;
+use \Stripe\Charge;
 
 class PaymentMethodStripe extends PaymentMethod
 {
@@ -14,9 +15,10 @@ class PaymentMethodStripe extends PaymentMethod
         Stripe::setApiKey(env('STRIPE_SECRET'));
     }
 
-    function addCard($info, $username) {
+    function addCard($info, $username, $email) {
         $customer = Customer::create(array(
             "description" => $username,
+            "email" => $email,
             "source" => $info['stripeToken']
         ));
 
@@ -33,6 +35,16 @@ class PaymentMethodStripe extends PaymentMethod
         $customer = Customer::retrieve($details->customer_id);
         $customer->delete();
         parent::delete();
+    }
+
+    function charge($amount) {
+        $details = json_decode($this->details);
+
+        $charge = Charge::create(array(
+            'customer' => $details->customer_id,
+            'amount' => $amount,
+            'currency' => 'usd'
+        ));
     }
 
     // static function allCustomers() {
