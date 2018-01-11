@@ -9,6 +9,7 @@ use \Stripe\Stripe;
 use App\Models\Payment\PaymentMethod;
 use App\Models\Payment\PaymentMethodStripe;
 use App\Models\User\User_Email;
+use App\User;
 
 class PaymentController extends Controller
 {
@@ -111,7 +112,15 @@ class PaymentController extends Controller
                 ->first();
             $method->charge($values[$count], $count);
 
-            return $this->success();
+            // update diamond
+            $diamond = User::where('id', $user->id)->first();
+            $diamond->diamond += $count;
+            $diamond->save();
+
+            return Response()->json([
+                'success' => 1,
+                'user' => $diamond
+            ]);
         }
 
         return $this->fail('Unsupported Method');
@@ -130,7 +139,8 @@ class PaymentController extends Controller
 
     private function success() {
         return Response()->json([
-            'success' => 1
+            'success' => 1,
+            'user' => $user
         ]);
     }
 
