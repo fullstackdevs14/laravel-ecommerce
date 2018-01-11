@@ -7,6 +7,7 @@ use JWTAuth;
 use App\Models\Payment\PaymentMethod;
 use App\Models\Payment\PaymentMethodStripe;
 use App\Models\User\User_Email;
+use App\User;
 
 class PaymentController extends Controller
 {
@@ -109,15 +110,21 @@ class PaymentController extends Controller
                 ->first();
             $method->charge($values[$count]);
 
-            return $this->success();
+            // update diamond
+            $diamond = User::where('id', $user->id)->first();
+            $diamond->diamond += $count;
+            $diamond->save();
+
+            return $this->success($diamond);
         }
 
         return $this->fail('Unsupported Method');
     }
 
-    private function success() {
+    private function success($user) {
         return Response()->json([
-            'success' => 1
+            'success' => 1,
+            'user' => $user
         ]);
     }
 
