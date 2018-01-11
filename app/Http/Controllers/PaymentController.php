@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use JWTAuth;
+use \Stripe\Charge;
+use \Stripe\Stripe;
 use App\Models\Payment\PaymentMethod;
 use App\Models\Payment\PaymentMethodStripe;
 use App\Models\User\User_Email;
@@ -108,7 +110,7 @@ class PaymentController extends Controller
             $method = PaymentMethodStripe::where('user_id', $user->id)
                 ->where('type', $type)
                 ->first();
-            $method->charge($values[$count]);
+            $method->charge($values[$count], $count);
 
             // update diamond
             $diamond = User::where('id', $user->id)->first();
@@ -121,7 +123,22 @@ class PaymentController extends Controller
         return $this->fail('Unsupported Method');
     }
 
+<<<<<<< HEAD
     private function success($user) {
+=======
+    public function getTransactions() {
+        $user = JWTAuth::parseToken()->authenticate();
+        $method = PaymentMethodStripe::where('user_id', $user->id)
+            ->where('type', 1)->first();
+        $charges = $method->getCharges();
+
+        return Response()->json([
+            'list' => $charges
+        ]);
+    }
+
+    private function success() {
+>>>>>>> 9b73c755a492a3c15d4f9862ba18e4d399d89282
         return Response()->json([
             'success' => 1,
             'user' => $user
