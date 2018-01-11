@@ -37,16 +37,36 @@ class PaymentMethodStripe extends PaymentMethod
         parent::delete();
     }
 
-    function charge($amount) {
+    function charge($amount, $package) {
         $details = json_decode($this->details);
 
         $charge = Charge::create(array(
             'customer' => $details->customer_id,
             'amount' => $amount,
-            'currency' => 'usd'
+            'currency' => 'usd',
+            'description' => $package
         ));
     }
 
+    function getCharges() {
+        $details = json_decode($this->details);
+
+        $charges = Charge::all(array(
+            "customer" => $details->customer_id
+        ));
+
+        $list = array();
+        foreach($charges->data as $charge) {
+            array_push($list, array(
+                'amount' => $charge->amount,
+                'diamonds' => $charge->description,
+                'created' => $charge->created
+            ));
+        }
+
+        return $list;
+    }
+    
     // static function allCustomers() {
     //     Stripe::setApiKey(env('STRIPE_SECRET'));
     //     return Customer::all();

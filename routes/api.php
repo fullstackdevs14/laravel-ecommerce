@@ -426,6 +426,7 @@ Route::prefix('payment')->middleware(['jwt.auth'])->group(function() {
 	Route::post('methods', 'PaymentController@addMethod');
 	Route::post('methods/delete', 'PaymentController@deleteMethod');
 	Route::post('purchase', 'PaymentController@buyDiamonds');
+	Route::get('transactions', 'PaymentController@getTransactions');
 	// Route::get('customers/all', 'PaymentController@allCustomers');
 	// Route::post('customers/delete', 'PaymentController@deleteCustomer');
 });
