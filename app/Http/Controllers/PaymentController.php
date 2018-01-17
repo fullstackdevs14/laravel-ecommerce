@@ -139,8 +139,7 @@ class PaymentController extends Controller
 
     private function success() {
         return Response()->json([
-            'success' => 1,
-            'user' => $user
+            'success' => 1
         ]);
     }
 

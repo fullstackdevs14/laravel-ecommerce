@@ -405,7 +405,8 @@ class UserController extends Controller {
 							 ->get();
 			// whether profile user likes image
 			$is_liked = User_like::where("user_id", $user->id)
-						->where('image_id', $item['pid']);
+						->where('image_id', $item['pid'])
+						->get();
 
 			$filename = $item['s3_id'];
 			$index = strpos($filename, ".");
