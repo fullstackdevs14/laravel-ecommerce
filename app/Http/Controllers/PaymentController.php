@@ -126,12 +126,6 @@ class PaymentController extends Controller
         return $this->fail('Unsupported Method');
     }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-    private function success($user) {
-=======
-=======
->>>>>>> b50aea78dbebde15d27b6197e96dd4f5c9803ba2
     public function getTransactions() {
         $user = JWTAuth::parseToken()->authenticate();
         $method = PaymentMethodStripe::where('user_id', $user->id)
@@ -144,10 +138,6 @@ class PaymentController extends Controller
     }
 
     private function success() {
-<<<<<<< HEAD
->>>>>>> 9b73c755a492a3c15d4f9862ba18e4d399d89282
-=======
->>>>>>> b50aea78dbebde15d27b6197e96dd4f5c9803ba2
         return Response()->json([
             'success' => 1
         ]);

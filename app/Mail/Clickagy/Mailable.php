@@ -7,7 +7,7 @@ use GuzzleHttp\Client;
 
 class Mailable extends BaseMailable
 {
-    protected $_blastId;
+    protected $_blastId;    // This is the id for email template
     protected $_blastIds;
     
     public function send(\Illuminate\Contracts\Mail\Mailer $mailer)

@@ -178,8 +178,8 @@ class ImageController extends Controller
                     'version' => 'latest',
                     'region'  => 'us-east-1',
                     'credentials' => [
-                    'key'    => 'AKIAJQUQU7NSU2GSX2GQ',
-                    'secret' => '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'
+                    'key'    => 'AKIAITHDJMAJI4W5QZ5A',
+                    'secret' => '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'
                     ]
                     ]);
 
@@ -368,8 +368,8 @@ class ImageController extends Controller
                     'version' => 'latest',
                     'region'  => 'us-east-1',
                     'credentials' => [
-                    'key'    => 'AKIAJQUQU7NSU2GSX2GQ',
-                    'secret' => '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'
+                    'key'    => 'AKIAITHDJMAJI4W5QZ5A',
+                    'secret' => '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'
                     ]
                     ]);
 
