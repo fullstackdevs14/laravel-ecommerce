@@ -1031,9 +1031,11 @@ class ImageController extends Controller
         $content = $request->input('content');
         $category_type = $request->input('category_type');
         $ip_address = $request->input('ip_address');
+        $user = $request->input('user_id');
 
         // report Object create 
         $report = new Report([
+            'user_id' => $user,
             'image_id' => $reqImage,
             'category' => $category,
             'content' => $content,
@@ -1054,12 +1056,25 @@ class ImageController extends Controller
     {
         $query = Report::leftJoin('images as image1', 'reports.image_id','=','image1.id')
                  ->leftJoin('images as image2','reports.content','=','image2.id')   
-                 ->select('reports.category','reports.content','reports.type', 'reports.is_solved', 'reports.image_id', 'image1.*','image2.s3_id as duplicate_id', 'image2.title as d_title','reports.id as id')
+                 ->leftJoin('users', 'users.id','=','reports.user_id')
+                 ->select('reports.category','reports.content','reports.type', 'reports.is_solved', 'reports.image_id', 'image1.*','image2.s3_id as duplicate_id', 'image2.title as d_title', 'reports.id as id', 'reports.user_id' ,'reports.last_action','users.avatar','users.username')
                  ->paginate(30);
+        
+        // refresh the thumbnail url from original to refined
+        $all = collect();
+        foreach ($query as $item)
+        {
+            $report_category = Group_Follows::where('follower_id', $item->user_id)
+                    ->leftJoin('groups', 'groups.id','=','group_follows.group_id')
+                    ->get();
+            $item->r_category = $report_category;
+            $item->now = $this->now($item->updated_at);
+            $all->push($item);
+        }
 
         // return JSON data
         return Response()->json([
-          'result' => $query,
+          'result' => $all,
           'total' => $query->total()
           ], 200);       
     }
