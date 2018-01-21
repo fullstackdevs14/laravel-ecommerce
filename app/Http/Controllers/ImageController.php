@@ -1057,7 +1057,7 @@ class ImageController extends Controller
         $query = Report::leftJoin('images as image1', 'reports.image_id','=','image1.id')
                          ->leftJoin('images as image2','reports.content','=','image2.id')   
                          ->leftJoin('users', 'users.id','=','reports.user_id')
-                         ->select('reports.category','reports.content','reports.type', 'reports.is_solved', 'reports.image_id', 'image1.*','image2.s3_id as duplicate_id', 'image2.title as d_title', 'reports.id as id', 'reports.user_id' ,'reports.last_action','users.avatar','users.username')
+                         ->select('reports.category','reports.content','reports.type', 'reports.is_solved', 'reports.image_id', 'image1.*','image2.s3_id as duplicate_id', 'image2.title as d_title', 'reports.id as id', 'reports.user_id' ,'reports.last_action','users.avatar','users.username','users.id as uid')
                          ->paginate(30);
         
         // refresh the thumbnail url from original to refined
@@ -2475,7 +2475,7 @@ class ImageController extends Controller
         $query = Report::leftJoin('images as image1', 'reports.image_id','=','image1.id')
                  ->leftJoin('images as image2','reports.content','=','image2.id')   
                  ->leftJoin('users', 'users.id','=','reports.user_id')
-                 ->select('reports.category','reports.content','reports.type', 'reports.is_solved', 'reports.image_id', 'image1.*','image2.s3_id as duplicate_id', 'image2.title as d_title','reports.id as id','reports.user_id' ,'reports.last_action','users.avatar','users.username')
+                 ->select('reports.category','reports.content','reports.type', 'reports.is_solved', 'reports.image_id', 'image1.*','image2.s3_id as duplicate_id', 'image2.title as d_title','reports.id as id','reports.user_id' ,'reports.last_action','users.avatar','users.username','users.id as uid')
                  ->where('reports.is_solved','>','0')
                  ->orderBy('reports.created_at')
                  ->limit(10)
