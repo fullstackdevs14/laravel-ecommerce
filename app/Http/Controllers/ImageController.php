@@ -1055,19 +1055,21 @@ class ImageController extends Controller
     public function getWallpaperReportList(Request $request)
     {
         $query = Report::leftJoin('images as image1', 'reports.image_id','=','image1.id')
-                 ->leftJoin('images as image2','reports.content','=','image2.id')   
-                 ->leftJoin('users', 'users.id','=','reports.user_id')
-                 ->select('reports.category','reports.content','reports.type', 'reports.is_solved', 'reports.image_id', 'image1.*','image2.s3_id as duplicate_id', 'image2.title as d_title', 'reports.id as id', 'reports.user_id' ,'reports.last_action','users.avatar','users.username')
-                 ->paginate(30);
+                         ->leftJoin('images as image2','reports.content','=','image2.id')   
+                         ->leftJoin('users', 'users.id','=','reports.user_id')
+                         ->select('reports.category','reports.content','reports.type', 'reports.is_solved', 'reports.image_id', 'image1.*','image2.s3_id as duplicate_id', 'image2.title as d_title', 'reports.id as id', 'reports.user_id' ,'reports.last_action','users.avatar','users.username')
+                         ->paginate(30);
         
         // refresh the thumbnail url from original to refined
         $all = collect();
         foreach ($query as $item)
         {
-            $report_category = Group_Follows::where('follower_id', $item->user_id)
-                    ->leftJoin('groups', 'groups.id','=','group_follows.group_id')
-                    ->get();
+            $report_category = Group_Image::where('image_id', $item->image_id)
+                               ->leftJoin('groups', 'groups.name','=','group_image.group_id')
+                               ->get();
+            $tag_list = $this->getTags($item->image_id);
             $item->r_category = $report_category;
+            $item->r_tag = $tag_list;
             $item->now = $this->now($item->updated_at);
             $all->push($item);
         }
@@ -2351,10 +2353,9 @@ class ImageController extends Controller
             ]);        
     }
 
-    public function changeWallpaperGroup(Request $request)
+    public function removeWallpaperGroup(Request $request)
     {
         $from = $request->input('from');
-        $to = $request->input('to');
         $image_id = $request->input('img_id');
         $report = $request->input('report_id');
 
@@ -2374,9 +2375,7 @@ class ImageController extends Controller
 
         if($group_image)
         {
-            $group_image->group_id = $to;
-            $group_image->save();
-
+            $group_image->delete();
             return Response()->json([
                 "code" => 1
                 ]);
@@ -2392,7 +2391,7 @@ class ImageController extends Controller
     {
         $report_id = $request->input('report_id');
         // flag as processed
-        $report = Report::where('id', $report)->first();
+        $report = Report::where('id', $report_id)->first();
         // if report available
         if($report)
         {
@@ -2475,7 +2474,8 @@ class ImageController extends Controller
     {
         $query = Report::leftJoin('images as image1', 'reports.image_id','=','image1.id')
                  ->leftJoin('images as image2','reports.content','=','image2.id')   
-                 ->select('reports.category','reports.content','reports.type', 'reports.is_solved', 'reports.image_id', 'image1.*','image2.s3_id as duplicate_id', 'image2.title as d_title','reports.id as id')
+                 ->leftJoin('users', 'users.id','=','reports.user_id')
+                 ->select('reports.category','reports.content','reports.type', 'reports.is_solved', 'reports.image_id', 'image1.*','image2.s3_id as duplicate_id', 'image2.title as d_title','reports.id as id','reports.user_id' ,'reports.last_action','users.avatar','users.username')
                  ->where('reports.is_solved','>','0')
                  ->orderBy('reports.created_at')
                  ->limit(10)
@@ -2490,6 +2490,12 @@ class ImageController extends Controller
         $all = collect();
         foreach ($query as $item)
         {
+            $report_category = Group_Follows::where('follower_id', $item->user_id)
+                    ->leftJoin('groups', 'groups.id','=','group_follows.group_id')
+                    ->get();
+            $tag_list = $this->getTags($item->image_id);
+            $item->r_category = $report_category;
+            $item->r_tag = $tag_list;
             $item['r_type'] = 1;
             $all->push($item);
         }

@@ -401,8 +401,8 @@ Route::post('/notifications', [
 	'uses' => 'UserController@sendNotifications'
 ]);
 
-Route::post('/changewallpapergroup', [
-	'uses' => 'ImageController@changeWallpaperGroup'
+Route::post('/removewallpapergroup', [
+	'uses' => 'ImageController@removeWallpaperGroup'
 ]);
 
 Route::post('/rejectreport', [
