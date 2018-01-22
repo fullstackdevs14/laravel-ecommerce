@@ -531,7 +531,8 @@ class UserController extends Controller {
 		->where('user_oauth_tokens.driver', $providerId)->get();
 		if($user && count($user)!=0)
 			return Response()->json([
-				'result' => $user->first()
+				'result' => $user->first(),
+				'token' => JWTAuth::fromUser($user)
 				], 200);
 
 
@@ -545,21 +546,14 @@ class UserController extends Controller {
 		
 		if($user_temp)
 		{
-			// create security token
-			$time = Carbon::now();
-			$token = ([
-				'user_id'=> $user_temp->id,
-				'time' => $time
-				]);
-			$encrypted = Crypt::encrypt(json_encode($token));
 			/* last log in & time */
 			$user_temp->last_login_ip = $request->input('ip_address');
 			$user_temp->last_login = Carbon::now();
 			$user_temp->save();
-					
+
 			return Response()->json([
 				'result' => $user_temp,
-				'token' => $encrypted
+				'token' => JWTAuth::fromUser($user_temp)
 				], 200);
 		}
 		return Response()->json([
@@ -606,18 +600,9 @@ class UserController extends Controller {
 			]);
 		$oAuth->save();
 
-		$user = User::where('id', $user->id)->first();
-		// create security token
-		$time = Carbon::now();
-		$token = ([
-			'user_id'=> $user->id,
-			'time' => $time
-			]);
-		$encrypted = Crypt::encrypt(json_encode($token));
-
 		return Response()->json([
 			"result" => $user,
-			"token" => $encrypted
+			"token" => JWTAuth::fromUser($user)
 			], 201);
 	}
 
