@@ -249,6 +249,10 @@ Route::post('/user/setpost', [
 	'uses' => 'UserController@setPost'
 ]);
 
+Route::get('/user/follow/{user_id}', [
+	'uses' => 'UserController@getFollowList'
+]);
+
 Route::post('/user/follow', [
 	'uses' => 'UserController@follow'
 ]);

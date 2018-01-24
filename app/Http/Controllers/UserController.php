@@ -1615,7 +1615,8 @@ class UserController extends Controller {
             "result" => "Success"
             ], 200);
     }
-	public function getUserReportList(Request $request)
+
+    public function getUserReportList(Request $request)
     {
         $query = User_Report::leftJoin('users', 'users.id','=','user_reports.user_id')
                  ->select('user_reports.content', 'user_reports.is_solved', 'users.*')
@@ -1626,5 +1627,15 @@ class UserController extends Controller {
           'result' => $query,
           'total' => $query->total()
           ], 200);       
-    }	
+    }
+
+    public function getFollowList($user_id) {
+        $following_users = User_Follow::leftJoin('users', 'users.id','=','user_follows.user_id')
+            ->where('user_follows.follower_id', $user_id)
+            ->select('users.id')
+            ->get();
+        return Response()->json([
+            'result' => $following_users
+        ]);
+    }
 }
