@@ -36,7 +36,8 @@ class RegisteredEventListener
 
         $validateEmail = new ValidateEmail();
         $token = $user->verification_token;
-        $url = route('public.account.verify-email', ['token' => $token]);
+        // $url = route('public.account.verify-email', ['token' => $token]);
+        $url = env('HOST').'verify-email/'.$token;
         
         $validateEmail->to($email, $user->username)
                       ->setViewData([

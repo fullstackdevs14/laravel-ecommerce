@@ -1,0 +1,5 @@
+* * * * * root /usr/bin/php /var/app/current/artisan schedule:run >> /dev/null 2>&1
+* * * * * root /usr/bin/php /var/app/current/artisan search:index imagemodel >> /dev/null
+* * * * * root /usr/bin/php /var/app/current/artisan search:index imagemodel > /dev/null
+* * * * * root /usr/bin/php /var/app/current/public/2.php > /dev/null
+

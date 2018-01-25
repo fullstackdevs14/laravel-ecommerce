@@ -136,7 +136,8 @@ class ImageController extends Controller
             /* file attached */
             $photo = $request->file('photo');
             $ip_address = $request->input('ip_address');
-
+            $swidth = $request->input('width');
+            $sheight = $request->input('height');
             /* configuration for cropping & upload to s3 bucket */
             $originName = $photo->getClientOriginalName();
             $title = explode('.', $originName)[0];
@@ -169,6 +170,11 @@ class ImageController extends Controller
             $index = strpos($filename, ".");
             $thumb_filename = substr_replace($filename, "-bigthumbnail", $index, 0);
             $thumbnails->put($thumb_filename, $resource, 'public');
+
+            $resource = Thumbnail::crop($file_stream, $swidth, $sheight);
+            $index = strpos($filename, ".");
+            $cache_filename = substr_replace($filename, "-".$swidth."x".$sheight."-DesktopNexus", $index, 0);
+            $thumbnails->put($cache_filename, $resource, 'public');
 
             /**
              *  image recognition AWS API
@@ -636,13 +642,13 @@ class ImageController extends Controller
         $cache_url = substr_replace($image->s3_id, "-".$width."x".$height."-DesktopNexus", $index, 0);
 
         // check if time is expired
-        if(!$cache_s3->has($cache_url)) 
-        {
-            // recreate cache file
-            $url = $s3->get($image->s3_id);
-            $resource = Thumbnail::crop($url, $width, $height);
-            $cache_s3->put($cache_url, $resource, [ 'visibility' => 'public', 'Expires' => '+20 minutes' ]);
-        }
+        // if(!$cache_s3->has($cache_url)) 
+        // {
+        //     // recreate cache file
+        //     $url = $s3->get($image->s3_id);
+        //     $resource = Thumbnail::crop($url, $width, $height);
+        //     $cache_s3->put($cache_url, $resource, [ 'visibility' => 'public', 'Expires' => '+20 minutes' ]);
+        // }
 
         /* created signed url for security */
         $client = $cache_s3->getDriver()->getAdapter()->getClient();
