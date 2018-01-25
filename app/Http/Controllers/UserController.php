@@ -180,6 +180,25 @@ class UserController extends Controller {
 		return redirect($url);
 	}
 
+	public function verifyEmail($token)
+	{
+    	// Change verify value 
+		$user_email = User_Email::where('verification_token',$token)->first();
+		if ($user_email && $user_email->verified_at != 2) {
+			$user_email->hasVerified();
+			$user = User::find($user_email->user_id);
+			
+			return response()->json([
+				'user' => $user,
+				'token' => JWTAuth::fromUser($user)
+			]);
+		}
+
+		return response()->json([
+			'error' => 'Invalid token'
+		], 401);
+	}
+
 	public function show($id)
 	{
 		$user = User::find($id);

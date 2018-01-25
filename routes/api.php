@@ -19,6 +19,10 @@ Route::post('/user', [
 	'uses' => 'UserController@signup'
 ]);
 
+Route::get('/verify/{token}', [
+	'uses' => 'UserController@verifyEmail'
+]);
+
 Route::post('/user/signin', [
 	'uses' => 'UserController@signin'
 ]);
