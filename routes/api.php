@@ -23,9 +23,11 @@ Route::post('/user/signin', [
 	'uses' => 'UserController@signin'
 ]);
 
-Route::post('/user/checksession', [
-	'uses' => 'UserController@checkSession'
-]);
+Route::get('/refresh/token', function() {})
+		->middleware('jwt.refresh');
+
+Route::post('/user/checksession',function() {})
+	->middleware('jwt.auth');
 
 Route::post('/user/avatar/upload', [
 	'uses' => 'UserController@avatar_upload'

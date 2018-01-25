@@ -39,35 +39,6 @@ use Illuminate\Support\Facades\Crypt;
 
 class UserController extends Controller {
 
-	public function checkSession(Request $request)
-	{
-		try {
-			$user = JWTAuth::parseToken()->authenticate();
-
-			if (!$user ) {
-				return response()->json(['user_not_found'], 404);
-			}
-	
-		} catch (TokenExpiredException $e) {
-
-			return response()->json(['token_expired'], $e->getStatusCode());
-
-		} catch (TokenInvalidException $e) {
-	
-			return response()->json(['token_invalid'], $e->getStatusCode());
-	
-		} catch (JWTException $e) {
-	
-			return response()->json(['token_absent'], $e->getStatusCode());
-	
-		}
-	
-		// the token is valid and we have found the user via the sub claim
-		return response()->json([
-			"success" => 1
-		]);
-	}
-
 	public function signup(Request $request)
 	{
 		$this->validate($request, [
