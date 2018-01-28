@@ -113,6 +113,14 @@ class UserController extends Controller {
 			return response()->json([
 				'error' => 'Invalid username and/or password!'
 				], 500);
+		
+		if ($user->is_blocked) {
+			return response()->json([
+				'error' => 'Your account is blocked due to viloation of terms of service!',
+				'blocked' => 1
+				], 401);
+		}
+			
 		// user is verified
 		if($user_email->verified_at){
 			// create security token
@@ -841,6 +849,41 @@ class UserController extends Controller {
 		return Response()->json([
 				"result" => 1
 				], 200);
+	}
+
+	public function resolveReport(Request $request)
+	{
+			$report_id = $request->input('report_id');
+			$action = $request->input('action');
+			// flag as processed
+			$report = User_Report::find($report_id);
+			// if report available
+			if($report)
+			{
+					$report->is_solved = $action;
+					$report->save();
+
+					if ($action === 1) {
+						$user = User::find($report->user_id);
+						if ($user) {
+							$user->is_blocked = true;
+							$user->save();
+						}
+					} else if ($action === 2) {
+						$user = User::find($report->user_id);
+						if ($user) {
+							$user->is_warned = true;
+							$user->save();
+						}
+					}
+					return Response()->json([
+							"result" => 1
+							]);
+			}
+
+			return Response()->json([
+							"result" => 0
+							]);
 	}
 
 	public function unBlockUser(Request $request)
@@ -1592,14 +1635,15 @@ class UserController extends Controller {
     public function getUserReportList(Request $request)
     {
         $query = User_Report::leftJoin('users', 'users.id','=','user_reports.user_id')
-                 ->select('user_reports.content', 'user_reports.chatid', 'user_reports.is_solved', 'users.username', 'users.avatar')
+								 ->select('user_reports.id', 'user_reports.content', 'user_reports.chatid', 'user_reports.updated_at', 'user_reports.is_solved', 'user_reports.user_id', 'users.username', 'users.avatar')
+								 ->orderBy('updated_at', 'desc')
                  ->paginate(30);
 
         // return JSON data
         return Response()->json([
           'result' => $query,
           'total' => $query->total()
-          ], 200);       
+          ], 200);
     }
 
     public function getFollowList($user_id) {

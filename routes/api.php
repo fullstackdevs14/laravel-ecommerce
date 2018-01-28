@@ -26,8 +26,11 @@ Route::post('/user/signin', [
 Route::get('/refresh/token', function() {})
 		->middleware('jwt.refresh');
 
-Route::post('/user/checksession',function() {})
-	->middleware('jwt.auth');
+Route::post('/user/checksession',function(Request $request) {
+	return [
+		'user' => $request->user
+	];
+})->middleware(['jwt.auth', 'user.blocked']);
 
 Route::post('/user/avatar/upload', [
 	'uses' => 'UserController@avatar_upload'
@@ -315,6 +318,10 @@ Route::post('/user/report', [
 	'uses' => 'UserController@reportUser'
 ]);
 
+Route::post('/user/report/resolve', [
+	'uses' => 'UserController@resolveReport'
+]);
+
 Route::post('/user/unblock', [
 	'uses' => 'UserController@unBlockUser'
 ]);
@@ -427,7 +434,7 @@ Route::post('/getreportactivity', [
 	'uses' => 'ImageController@getReportActivity'
 ]);
 
-Route::prefix('payment')->middleware(['jwt.auth'])->group(function() {
+Route::prefix('payment')->middleware(['jwt.auth', 'user.blocked'])->group(function() {
 	Route::get('methods', 'PaymentController@getMethods');
 	Route::post('methods', 'PaymentController@addMethod');
 	Route::post('methods/delete', 'PaymentController@deleteMethod');
