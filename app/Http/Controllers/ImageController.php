@@ -329,6 +329,8 @@ class ImageController extends Controller
 
             $photo = $request->input('url');
             $ip_address = $request->input('ip_address');
+            $swidth = $request->input('width');
+            $sheight = $request->input('height');
 
             $originName = substr($url, strrpos($url, '/') + 1);
             $title = explode('.', $originName)[0];
@@ -365,6 +367,11 @@ class ImageController extends Controller
             $index = strpos($filename, ".");
             $thumb_filename = substr_replace($filename, "-bigthumbnail", $index, 0);
             $thumbnails->put($thumb_filename, $resource, 'public');
+
+            $resource = Thumbnail::crop($file_stream, $swidth, $sheight);
+            $index = strpos($filename, ".");
+            $cache_filename = substr_replace($filename, "-".$swidth."x".$sheight."-DesktopNexus", $index, 0);
+            $thumbnails->put($cache_filename, $resource, 'public');
 
             /**
              *  Image Rekognition
@@ -418,7 +425,7 @@ class ImageController extends Controller
                     ],
                     ],
                     'MaxLabels' => 123,
-                    'MinConfidence' => 75,
+                    'MinConfidence' => 60,
                     ]);
                 $tags = $result->get('Labels');
 
@@ -2308,7 +2315,7 @@ class ImageController extends Controller
             ->qOr(function($builder) use ($input) {
                 foreach($input as $key)
                 {
-                    $builder = $builder->phrase('*'.$key.'*');
+                    $builder = $builder->prefix($key);
                 }
             })
             ->paginate(24);
