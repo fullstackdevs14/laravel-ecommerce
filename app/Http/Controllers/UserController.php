@@ -1167,7 +1167,7 @@ class UserController extends Controller {
             ->qOr(function($builder) use ($input) {
                 foreach($input as $key)
                 {
-                    $builder = $builder->term('*' . $key . '*');
+                    $builder = $builder->prefix($key);
                 }
             })
             ->paginate(12);
@@ -1199,7 +1199,7 @@ class UserController extends Controller {
             ->qOr(function($builder) use ($input) {
                 foreach($input as $key)
                 {
-                    $builder = $builder->phrase($key);
+                    $builder = $builder->prefix($key);
                 }
             })
             ->paginate(12);

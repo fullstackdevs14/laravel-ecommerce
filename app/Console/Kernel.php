@@ -26,8 +26,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')
-        //          ->hourly();
+        $schedule->call(function () {
+            \DB::table('log')->insert(["refer" => date("H:i:s")]);
+        })->everyMinute();
     }
 
     /**
