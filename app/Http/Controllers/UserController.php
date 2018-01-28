@@ -804,6 +804,7 @@ class UserController extends Controller {
 		$user_id = $request->input('uid');
 		$block_name = $request->input('block_name');
 		$message = $request->input('message');
+		$chat_id = $request->input('chat_id');
 		$ip_address = $request->input('ip_address');
 
 		$user = User::whereusername($block_name)->first();
@@ -830,7 +831,8 @@ class UserController extends Controller {
 
 		$report = new User_Report([
             'user_id' => $user->id,
-            'content' => $message,
+						'content' => $message,
+						'chatid' => $chat_id,
             'ip_address' => $ip_address,
             'last_action' => Carbon::now()
             ]);
@@ -1590,7 +1592,7 @@ class UserController extends Controller {
     public function getUserReportList(Request $request)
     {
         $query = User_Report::leftJoin('users', 'users.id','=','user_reports.user_id')
-                 ->select('user_reports.content', 'user_reports.is_solved', 'users.*')
+                 ->select('user_reports.content', 'user_reports.chatid', 'user_reports.is_solved', 'users.username', 'users.avatar')
                  ->paginate(30);
 
         // return JSON data
