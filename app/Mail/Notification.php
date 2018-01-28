@@ -11,7 +11,7 @@ class Notification extends \App\Mail\Clickagy\Mailable
     use Queueable, SerializesModels;
 
     protected $_blastIds = [
-        'dn' => '66vqjlqjx51ug'
+        'dn' => '10mvrzq9l42m7'
     ];
     
 }

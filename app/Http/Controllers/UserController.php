@@ -1546,8 +1546,8 @@ class UserController extends Controller {
 	}
 
 	public function sendNotifications(Request $request)
-	{
-		$user_id = $request->input('user_id');
+	{ 
+		$user_id = $request->input('to');
 	    $setting = $this->getUserSetting($user_id);
 	    $type = $request->input('type');
 
@@ -1559,6 +1559,7 @@ class UserController extends Controller {
 		$name = "";
 		if($email_query) $email = $email_query->email;
 		if($user) $name = $user->firstname . " " . $user->lastname;
+
 
 	    $notification = new Notification();
         // message body
@@ -1575,12 +1576,13 @@ class UserController extends Controller {
 	        #$text = 
 	    }
 
-	    /* forward email */
+	    // i printed those parameters You see??
+	    return "Email:".$user_id." Setting:".$setting." Type:".$type;
 	    $notification->to($email, $name)
-        ->setViewData([
+                      ->setViewData([
             'FNAME' => $name,
             'CONTENT' => $text
-            ]);
+        ]);
         Mail::queue($notification);
 
 	    return Response()->json($request->all());

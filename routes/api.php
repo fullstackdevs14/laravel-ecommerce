@@ -412,7 +412,7 @@ Route::post('/user/settings/notification', [
 
 Route::post('/notifications', [
 	'uses' => 'UserController@sendNotifications'
-]);
+])->middleware(['jwt.auth', 'user.blocked']);
 
 Route::post('/removewallpapergroup', [
 	'uses' => 'ImageController@removeWallpaperGroup'
