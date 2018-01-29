@@ -1167,7 +1167,7 @@ class UserController extends Controller {
             ->qOr(function($builder) use ($input) {
                 foreach($input as $key)
                 {
-                    $builder = $builder->prefix($key);
+                    $builder = $builder->prefix($key)->phrase($key);
                 }
             })
             ->paginate(12);
@@ -1562,8 +1562,9 @@ class UserController extends Controller {
 
 
 	    $notification = new Notification();
+	    
         // message body
-        $text = "";
+        $text = "Hello";
 
         // email content
 		if ($type === 10 && $setting->private_msg) { // Send private message
@@ -1576,15 +1577,16 @@ class UserController extends Controller {
 	        #$text = 
 	    }
 
-	    // i printed those parameters You see??
-	    return "Email:".$user_id." Setting:".$setting." Type:".$type;
-	    $notification->to($email, $name)
-                      ->setViewData([
-            'FNAME' => $name,
-            'CONTENT' => $text
-        ]);
-        Mail::queue($notification);
-
+	    // Send Email
+	    if($email!="" && $email)
+	    {
+		    $notification->to($email, $name)
+	                      ->setViewData([
+	            'FNAME' => $name,
+	            'CONTENT' => $text
+	        ]);
+	        Mail::queue($notification);
+	    }
 	    return Response()->json($request->all());
 	}
 

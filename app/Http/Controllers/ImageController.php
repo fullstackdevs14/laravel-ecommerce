@@ -2315,7 +2315,7 @@ class ImageController extends Controller
             ->qOr(function($builder) use ($input) {
                 foreach($input as $key)
                 {
-                    $builder = $builder->prefix($key);
+                    $builder = $builder->prefix($key)->phrase($key);
                 }
             })
             ->paginate(24);
