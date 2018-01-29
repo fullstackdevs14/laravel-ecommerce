@@ -1402,27 +1402,14 @@ class ImageController extends Controller
                 ->limit(5)
                 ->get();
 
-        // user role
-        $role_query = DB::table('role_user')
-                ->leftJoin('roles', 'roles.id','=','role_user.role_id')
-                ->where('role_user.user_id', $user)
-                ->first();
-
-        $role_flag = 0;
-        if($role_query)
-        {
-            if($role_query->name == 'moderator' || $role_query->name == 'admin') $role_flag = 1;
-        }
-
         return Response()->json([
             "image" => $image,
             "online" => $online,
             "gallery" => $galleries,
             "upload" => $upload,
             "favorite" => $favorite,
-            "recent" => $recent_visit,
-            "role_flag" => $role_flag
-            ], 200);
+            "recent" => $recent_visit
+        ], 200);
     }
 
     public function sendDiamond(Request $request)

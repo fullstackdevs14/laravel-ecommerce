@@ -39,6 +39,22 @@ use Illuminate\Support\Facades\Crypt;
 
 class UserController extends Controller {
 
+	private function generateToken($user) {
+		$role_query = DB::table('role_user')
+			->leftJoin('roles', 'roles.id','=','role_user.role_id')
+			->where('role_user.user_id', $user->id)
+			->first();
+		if($role_query)
+		{
+			$user->role = $role_query->name;
+		}
+
+		return response()->json([
+			'user' => $user,
+			'token' => JWTAuth::fromUser($user)
+			], 200);
+	}
+
 	public function signup(Request $request)
 	{
 		$this->validate($request, [
@@ -128,12 +144,8 @@ class UserController extends Controller {
 			$user->last_login_ip = $request->input('ip_address');
 			$user->last_login = Carbon::now();
 			$user->save();
-			$encrypted = JWTAuth::fromUser($user);
 
-			return response()->json([
-				'user' => $user,
-				'token' => $encrypted
-				], 200);
+			return $this->generateToken($user);
 		}
 		else
 			return response()->json([
@@ -508,11 +520,9 @@ class UserController extends Controller {
 
 		$user = $users->where('user_oauth_tokens.token', $accessToken)
 		->where('user_oauth_tokens.driver', $providerId)->get();
-		if($user && count($user)!=0)
-			return Response()->json([
-				'result' => $user->first(),
-				'token' => JWTAuth::fromUser($user)
-				], 200);
+		if($user && count($user)!=0) {
+			return $this->generateToken($user);
+		}
 
 
 		$user_email = User_Email::where('email', $email)->first();
@@ -529,11 +539,8 @@ class UserController extends Controller {
 			$user_temp->last_login_ip = $request->input('ip_address');
 			$user_temp->last_login = Carbon::now();
 			$user_temp->save();
-					
-			return Response()->json([
-				'result' => $user_temp,
-				'token' => JWTAuth::fromUser($user_temp)
-				], 200);
+
+			return $this->generateToken($user);
 		}
 		return Response()->json([
 			'error' => 'No Result'
@@ -542,10 +549,6 @@ class UserController extends Controller {
 
 	public function oAuthSet(Request $request)
 	{
-		// return Response()->json([
-		// 	'driver' => $request->input('providerId'),
-		// 	'token' => $request->input('accessToken')
-		// ]);
 		$this->validate($request, [
 			'username' => 'required|unique:users',
 			'password' => 'required'
@@ -579,10 +582,7 @@ class UserController extends Controller {
 			]);
 		$oAuth->save();
 
-		return Response()->json([
-			"result" => $user,
-			"token" => JWTAuth::fromUser($user)
-			], 201);
+		return $this->generateToken($user);
 	}
 
 	public function group_image_upload(Request $request)
