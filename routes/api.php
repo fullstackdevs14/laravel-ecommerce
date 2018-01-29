@@ -60,8 +60,8 @@ Route::post('/changepassword', [
 	'uses' => 'ForgotController@changePassword'
 ]);
 
-Route::get('confirm/{token}', [
-	'uses' => 'UserController@confirmEmail'
+Route::get('/verify/{token}', [
+	'uses' => 'UserController@verifyEmail'
 ]);
 
 Route::get('image/gallery', [
