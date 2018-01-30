@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreatePaymentMethodsTable extends Migration
+class CreateImageDownloadTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,11 @@ class CreatePaymentMethodsTable extends Migration
      */
     public function up()
     {
-        if(!Schema::hasTable('payment_methods'))
-         Schema::create('payment_methods', function (Blueprint $table) {
+        if(!Schema::hasTable('image_download'))
+        Schema::create('image_download', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('user_id');
-            $table->unsignedTinyInteger('type');
-            $table->text('details');
+            $table->string('ip_address', 50);
+            $table->integer('image_id')->unsigned();
             $table->timestamps();
         });
     }
@@ -30,6 +29,6 @@ class CreatePaymentMethodsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('payment_methods');
+        Schema::dropIfExists('image_download');
     }
 }

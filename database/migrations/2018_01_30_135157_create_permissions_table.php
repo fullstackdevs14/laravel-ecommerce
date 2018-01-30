@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class AddChatidToUserReportsTable extends Migration
+class CreatePermissionsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,12 @@ class AddChatidToUserReportsTable extends Migration
      */
     public function up()
     {
-        Schema::table('user_reports', function (Blueprint $table) {
-            $table->string('chatid');
+        if(!Schema::hasTable('permissions'))
+        Schema::create('permissions', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('name', 255);
+            $table->string('label', 255)->nullable();
+            $table->timestamps();
         });
     }
 
@@ -25,8 +29,6 @@ class AddChatidToUserReportsTable extends Migration
      */
     public function down()
     {
-        Schema::table('user_reports', function (Blueprint $table) {
-            $table->dropColumn('chatid');
-        });
+        Schema::dropIfExists('permissions');
     }
 }

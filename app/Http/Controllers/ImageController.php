@@ -1785,7 +1785,7 @@ class ImageController extends Controller
         ;
 
         $images = $images
-        ->select('images.*','users.firstname','users.lastname','users.avatar', 'users.username')
+        ->select('images.*','users.first_name','users.last_name','users.avatar', 'users.username')
         ->distinct('images.id')
         ->orderBy('images.updated_at','desc')
         ->offset(0)
@@ -1870,7 +1870,7 @@ class ImageController extends Controller
             ->join('users', 'users.id', '=', 'images.upload_by')
             ->where('groups.status', '=', 'active')
             ->where('galleries.name','=', $gallery)
-            ->select('images.*','users.firstname','users.lastname','users.avatar', 'images.updated_at as updated_at')
+            ->select('images.*','users.first_name','users.last_name','users.avatar', 'images.updated_at as updated_at')
             ->distinct('images.id')
             ->orderBy('images.updated_at','desc')
             ->offset($offset * $load_per_page)

@@ -17,7 +17,7 @@ class CreateMessagesTable extends Migration
             $table->text('body');
             $table->integer('conversation_id')->unsigned();
             $table->integer('user_id')->unsigned();
-            $table->string('type')->default('text');
+            $table->string('type', 255)->default('text');
             $table->timestamps();
 
             $table->foreign('user_id')

@@ -16,8 +16,11 @@ class CreateUserFavImagesTabel extends Migration
         if(!Schema::hasTable('user_fav_images'))
             Schema::create('user_fav_images', function(Blueprint $table) {
                 $table->increments('id');
-                $table->Integer('folder_id')->unsigned();
+                $table->string('folder_id', 255)->nullable();
+                $table->Integer('user_id')->unsigned();
                 $table->Integer('image_id');
+                $table->string('ip_address', 255)->nullable();
+                $table->timestamp('last_action')->nullable();
                 $table->timestamps();
             });
     }

@@ -14,8 +14,8 @@ class CreateCloudsearchQueuesTable extends Migration
     public function up()
     {
         Schema::create('cloudsearch_queues', function (Blueprint $table) {
-            $table->string('entry_id');
-            $table->string('entry_type');
+            $table->string('entry_id', 255);
+            $table->string('entry_type', 255);
             $table->string('action', 10);
             $table->tinyInteger('status')->default(Queue::STATUS_WAITING);
             $table->unsignedInteger('created_at');

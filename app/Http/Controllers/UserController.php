@@ -58,8 +58,8 @@ class UserController extends Controller {
 	public function signup(Request $request)
 	{
 		$this->validate($request, [
-			'firstname' => 'required',
-			'lastname' => 'required',
+			'first_name' => 'required',
+			'last_name' => 'required',
 			'username' => 'required|unique:users',
 			'password' => 'required'
 			]);
@@ -74,8 +74,8 @@ class UserController extends Controller {
 		}
 
 		$user = new User([
-			'firstname' => $request->input('firstname'),
-			'lastname' => $request->input('lastname'),
+			'first_name' => $request->input('first_name'),
+			'last_name' => $request->input('last_name'),
 			'username' => $request->input('username'),
 			'avatar' => env('AVATAR'),
 			'password' => bcrypt($request->input('password')),
@@ -571,8 +571,8 @@ class UserController extends Controller {
 			]);
 
 		$user = new User([
-			'firstname' => $request->input('firstname'),
-			'lastname' => $request->input('lastname'),
+			'first_name' => $request->input('first_name'),
+			'last_name' => $request->input('last_name'),
 			'username' => $request->input('username'),
 			'avatar' => env('AVATAR'),
 			'password' => bcrypt($request->input('password')),
@@ -696,8 +696,8 @@ class UserController extends Controller {
 	public function setInfo(Request $request)
 	{
 		$user = User::find($request->input('user_id'))->first();
-		$user->firstname = $request->input('first');
-		$user->lastname = $request->input('last');
+		$user->first_name = $request->input('first');
+		$user->last_name = $request->input('last');
 		$user->save();
 		return Response()->json([
 			"result" => $user
@@ -856,7 +856,7 @@ class UserController extends Controller {
 		$report = new User_Report([
             'user_id' => $user->id,
 						'content' => $message,
-						'chatid' => $chat_id,
+						'chat_id' => $chat_id,
             'ip_address' => $ip_address,
             'last_action' => Carbon::now()
             ]);
@@ -1145,7 +1145,7 @@ class UserController extends Controller {
 			array_push($list, $item->banned_id);
 		}
 		$users = User::whereNotIn('id', $list)
-			->whereRaw("lower(concat(firstname,' ',lastname)) like '%".$filter."%' or username like '%".$filter."%'")
+			->whereRaw("lower(concat(first_name,' ',last_name)) like '%".$filter."%' or username like '%".$filter."%'")
 			->limit(5)->get();
 
 		return Response()->json([
@@ -1461,7 +1461,7 @@ class UserController extends Controller {
 	            ]);
 		}
 		$query = User::where('username', 'LIKE', '%'.$hint.'%')
-				// ->orWhere('lastname', 'LIKE', '%'.$hint.'%')
+				// ->orWhere('last_name', 'LIKE', '%'.$hint.'%')
 				// ->orWhere('username', 'LIKE', '%'.$hint.'%')
 				->select('username')
 				->get();
@@ -1573,7 +1573,7 @@ class UserController extends Controller {
 		$email = "";
 		$name = "";
 		if($email_query) $email = $email_query->email;
-		if($user) $name = $user->firstname . " " . $user->lastname;
+		if($user) $name = $user->first_name . " " . $user->last_name;
 
 
 	    $notification = new Notification();
@@ -1654,7 +1654,7 @@ class UserController extends Controller {
     public function getUserReportList(Request $request)
     {
         $query = User_Report::leftJoin('users', 'users.id','=','user_reports.user_id')
-								 ->select('user_reports.id', 'user_reports.content', 'user_reports.chatid', 'user_reports.updated_at', 'user_reports.is_solved', 'user_reports.user_id', 'users.username', 'users.avatar')
+								 ->select('user_reports.id', 'user_reports.content', 'user_reports.chat_id', 'user_reports.updated_at', 'user_reports.is_solved', 'user_reports.user_id', 'users.username', 'users.avatar')
 								 ->orderBy('updated_at', 'desc')
                  ->paginate(30);
 

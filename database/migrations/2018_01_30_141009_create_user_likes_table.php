@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreatePaymentMethodsTable extends Migration
+class CreateUserLikesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,13 +13,14 @@ class CreatePaymentMethodsTable extends Migration
      */
     public function up()
     {
-        if(!Schema::hasTable('payment_methods'))
-         Schema::create('payment_methods', function (Blueprint $table) {
+        if(!Schema::hasTable('user_likes'))
+        Schema::create('user_likes', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('user_id');
-            $table->unsignedTinyInteger('type');
-            $table->text('details');
+            $table->integer('user_id')->unsigned();
+            $table->integer('image_id')->unsigned();
             $table->timestamps();
+            $table->string('ip_address', 255)->nullable();
+            $table->timestamp('last_action')->nullable();
         });
     }
 
@@ -30,6 +31,6 @@ class CreatePaymentMethodsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('payment_methods');
+        Schema::dropIfExists('user_likes');
     }
 }

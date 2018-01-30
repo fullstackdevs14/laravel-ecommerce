@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreatePaymentMethodsTable extends Migration
+class CreateLogTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,12 @@ class CreatePaymentMethodsTable extends Migration
      */
     public function up()
     {
-        if(!Schema::hasTable('payment_methods'))
-         Schema::create('payment_methods', function (Blueprint $table) {
+        if(!Schema::hasTable('log'))
+        Schema::create('log', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('user_id');
-            $table->unsignedTinyInteger('type');
-            $table->text('details');
+            $table->string('ip_address', 50);
+            $table->string('path', 500);
+            $table->string('refer', 50);
             $table->timestamps();
         });
     }
@@ -30,6 +30,6 @@ class CreatePaymentMethodsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('payment_methods');
+        Schema::dropIfExists('log');
     }
 }

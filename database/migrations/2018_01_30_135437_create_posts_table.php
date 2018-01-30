@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateUserReportsTable extends Migration
+class CreatePostsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,16 +13,17 @@ class CreateUserReportsTable extends Migration
      */
     public function up()
     {
-        if(!Schema::hasTable('user_reports'))
-         Schema::create('user_reports', function (Blueprint $table) {
+        if(!Schema::hasTable('posts'))
+        Schema::create('posts', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('user_id');
-            $table->text('content');
-            $table->boolean('is_solved')->default(0);
+            $table->string('type', 255)->nullable();
+            $table->string('content', 1000)->nullable();
+            $table->integer('image_id')->unsigned();
+            $table->integer('author_id')->unsigned();
+            $table->integer('user_id')->unsigned();
             $table->timestamps();
             $table->string('ip_address', 255)->nullable();
             $table->timestamp('last_action')->nullable();
-            $table->string('chat_id', 255);
         });
     }
 
@@ -33,6 +34,6 @@ class CreateUserReportsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('user_reports');
+        Schema::dropIfExists('posts');
     }
 }

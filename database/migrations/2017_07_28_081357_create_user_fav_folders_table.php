@@ -15,10 +15,10 @@ class CreateUserFavFoldersTable extends Migration
     {
         if(!Schema::hasTable('user_fav_folders'))
             Schema::create('user_fav_folders', function(Blueprint $table) {
-                $table->string('id');
+                $table->string('id', 255);
                 $table->Integer('user_id')->unsigned();
-                $table->string('text');
-                $table->Integer('parent_id')->unsigned();
+                $table->string('text', 255);
+                $table->string('parent', 255)->nullable();
                 $table->timestamps();
             });
     }

@@ -30,7 +30,7 @@ class ForgotController extends Controller
             // send email by validate
             $validateEmail->to($email, $user->username)
                           ->setViewData([
-                'FNAME' => $user->firstname,
+                'FNAME' => $user->first_name,
                 'CONTENT' => $url
             ]);         
     
@@ -60,7 +60,7 @@ class ForgotController extends Controller
             // send email by validate
             $validateEmail->to($email, $user->username)
                           ->setViewData([
-                'FNAME' => $user->firstname,
+                'FNAME' => $user->first_name,
                 'CONTENT' => $content
             ]);
                           
