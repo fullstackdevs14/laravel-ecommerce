@@ -1555,7 +1555,7 @@ class UserController extends Controller {
 		return Response()->json($setting);
 	}
 
-	public function getNotificationSettings()
+	public function getNotificationSettings(Request $request)
 	{
 	    return Response()->json($this->getUserSetting($request->user->id));
 	}
