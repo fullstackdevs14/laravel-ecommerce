@@ -556,7 +556,7 @@ class UserController extends Controller {
 			$user_temp->last_login = Carbon::now();
 			$user_temp->save();
 
-			return $this->generateToken($user);
+			return $this->generateToken($user_temp);
 		}
 		return Response()->json([
 			'error' => 'No Result'

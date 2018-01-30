@@ -23,15 +23,6 @@ Route::post('/user/signin', [
 	'uses' => 'UserController@signin'
 ]);
 
-Route::get('/refresh/token', function() {})
-		->middleware('jwt.refresh');
-
-Route::post('/user/checksession',function(Request $request) {
-	return [
-		'user' => $request->user
-	];
-})->middleware(['jwt.auth', 'user.blocked']);
-
 Route::post('/user/avatar/upload', [
 	'uses' => 'UserController@avatar_upload'
 ]);
@@ -266,10 +257,6 @@ Route::post('/user/unfollow', [
 	'uses' => 'UserController@unfollow'
 ]);
 
-Route::post('/image/senddiamond', [
-	'uses' => 'ImageController@sendDiamond'
-]);
-
 Route::post('/image/download', [
 	'uses' => 'ImageController@downloadWallpaper'
 ]);
@@ -410,10 +397,6 @@ Route::post('/user/settings/notification', [
 	'uses' => 'UserController@setNotificationSettings'
 ]);
 
-Route::post('/notifications', [
-	'uses' => 'UserController@sendNotifications'
-])->middleware(['jwt.auth', 'user.blocked']);
-
 Route::post('/removewallpapergroup', [
 	'uses' => 'ImageController@removeWallpaperGroup'
 ]);
@@ -434,12 +417,25 @@ Route::post('/getreportactivity', [
 	'uses' => 'ImageController@getReportActivity'
 ]);
 
-Route::prefix('payment')->middleware(['jwt.auth', 'user.blocked'])->group(function() {
-	Route::get('methods', 'PaymentController@getMethods');
-	Route::post('methods', 'PaymentController@addMethod');
-	Route::post('methods/delete', 'PaymentController@deleteMethod');
-	Route::post('purchase', 'PaymentController@buyDiamonds');
-	Route::get('transactions', 'PaymentController@getTransactions');
-	// Route::get('customers/all', 'PaymentController@allCustomers');
-	// Route::post('customers/delete', 'PaymentController@deleteCustomer');
+Route::get('/refresh/token', function() {})
+	->middleware('jwt.refresh');
+
+Route::middleware(['jwt.auth', 'user.blocked'])->group(function() {
+	Route::post('/user/checksession',function(Request $request) {
+		return [
+			'user' => $request->user
+		];
+	});
+	Route::post('/notifications', [
+		'uses' => 'UserController@sendNotifications'
+	]);
+	Route::get('/payment/methods', 'PaymentController@getMethods');
+	Route::post('/payment/methods', 'PaymentController@addMethod');
+	Route::post('/payment/methods/delete', 'PaymentController@deleteMethod');
+	Route::post('/payment/purchase', 'PaymentController@buyDiamonds');
+	Route::get('/payment/transactions', 'PaymentController@getTransactions');
+
+	Route::post('/image/senddiamond', [
+		'uses' => 'ImageController@sendDiamond'
+	]);
 });

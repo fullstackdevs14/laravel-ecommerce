@@ -1414,11 +1414,16 @@ class ImageController extends Controller
 
     public function sendDiamond(Request $request)
     {
-        $sender_id = $request->input('user_id');
         $receiver_id = $request->input('uploader_id');
         $diamond = $request->input('amount');
 
-        $sender = User::find($sender_id);
+        $sender = $request->user;
+        if ($sender->diamond < $diamond) {
+            return Response()->json([
+                'error' => 'not_enough_diamonds'
+            ], 400); 
+        }
+
         $receiver = User::find($receiver_id);
 
             // if receiver not exist in database
@@ -1426,7 +1431,7 @@ class ImageController extends Controller
         {
             return Response()->json([
                 'result' => 0
-                ], 201);    
+                ], 201);
         }
 
         $sender->diamond -= $diamond;
@@ -1435,8 +1440,6 @@ class ImageController extends Controller
         $receiver->save();
 
         return Response()->json([
-            'sender' => $sender,
-            'receiver' => $receiver,
             'result' => 1
             ], 200); 
     }
