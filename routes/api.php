@@ -389,10 +389,6 @@ Route::post('getbanlist', [
 	'uses' => 'UserController@getBanList'
 ]);
 
-Route::get('/user/settings/notification/{user_id}', [
-	'uses' => 'UserController@getNotificationSettings'
-]);
-
 Route::post('/user/settings/notification', [
 	'uses' => 'UserController@setNotificationSettings'
 ]);
@@ -426,6 +422,9 @@ Route::middleware(['jwt.auth', 'user.blocked'])->group(function() {
 			'user' => $request->user
 		];
 	});
+	Route::get('/user/settings/notification', [
+		'uses' => 'UserController@getNotificationSettings'
+	]);
 	Route::post('/notifications', [
 		'uses' => 'UserController@sendNotifications'
 	]);
