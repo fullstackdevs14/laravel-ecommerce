@@ -825,13 +825,13 @@ class UserController extends Controller {
 	}
 
 	public function reportUser(Request $request) {
-		$user_id = $request->input('uid');
-		$block_name = $request->input('block_name');
+		$user_id = $request->user->id;
+		$reported = $request->input('reported');
 		$message = $request->input('message');
 		$chat_id = $request->input('chat_id');
 		$ip_address = $request->input('ip_address');
 
-		$user = User::whereusername($block_name)->first();
+		$user = User::find($reported);
 		// if user not exist
 		if(!$user)
 		{
@@ -841,25 +841,26 @@ class UserController extends Controller {
 		}
 
 		$query = User_Ignore::where('user_id', $user_id)
-			->where('banned_id')
+			->where('banned_id', $reported)
 			->exists();
-		if ($query) {
+		if (!$query) {
 			$user_ignore = new User_Ignore([
 				'user_id' => $user_id,
 				'banned_id' => $user->id,
-				]);
+			]);
 			$user_ignore->save();
 		}
 		
 		// save to Database
 
 		$report = new User_Report([
-            'user_id' => $user->id,
-						'content' => $message,
-						'chat_id' => $chat_id,
+			'reporter' => $user_id,
+			'reported' => $reported,
+			'content' => $message,
+			'chat_id' => $chat_id,
             'ip_address' => $ip_address,
             'last_action' => Carbon::now()
-            ]);
+		]);
 		$report->save();
 
 		return Response()->json([
@@ -1653,16 +1654,20 @@ class UserController extends Controller {
 
     public function getUserReportList(Request $request)
     {
-        $query = User_Report::leftJoin('users', 'users.id','=','user_reports.user_id')
-								 ->select('user_reports.id', 'user_reports.content', 'user_reports.chat_id', 'user_reports.updated_at', 'user_reports.is_solved', 'user_reports.user_id', 'users.username', 'users.avatar')
-								 ->orderBy('updated_at', 'desc')
+		$query = User_Report::leftJoin('users as u1', 'u1.id','=', 'user_reports.reporter')
+							->leftJoin('users as u2', 'u2.id', '=', 'user_reports.reported')
+							->select('user_reports.id', 'user_reports.content', 'user_reports.chat_id',
+									 'user_reports.updated_at', 'user_reports.is_solved',
+									 'u1.id as reporter_id', 'u1.username as reporter_name', 'u1.avatar as reporter_avatar',
+									 'u2.id as reported_id', 'u2.username as reported_name', 'u2.avatar as reported_avatar')
+							->orderBy('updated_at', 'desc')
                  ->paginate(30);
 
         // return JSON data
         return Response()->json([
           'result' => $query,
           'total' => $query->total()
-          ], 200);
+        ], 200);
     }
 
     public function getFollowList($user_id) {

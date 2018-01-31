@@ -204,10 +204,6 @@ Route::post('/getwallpaperreportlist', [
 	'uses' => 'ImageController@getWallpaperReportList'
 ]);
 
-Route::post('/getuserreportlist', [
-	'uses' => 'UserController@getUserReportList'
-]);
-
 Route::post('/savefavtree', [
 	'uses' => 'ImageController@saveFavtree'
 ]);
@@ -299,10 +295,6 @@ Route::post('/image/resize', [
 
 Route::post('/user/block', [
 	'uses' => 'UserController@blockUser'
-]);
-
-Route::post('/user/report', [
-	'uses' => 'UserController@reportUser'
 ]);
 
 Route::post('/user/report/resolve', [
@@ -422,12 +414,11 @@ Route::middleware(['jwt.auth', 'user.blocked'])->group(function() {
 			'user' => $request->user
 		];
 	});
-	Route::get('/user/settings/notification', [
-		'uses' => 'UserController@getNotificationSettings'
-	]);
-	Route::post('/notifications', [
-		'uses' => 'UserController@sendNotifications'
-	]);
+	Route::get('/user/settings/notification', 'UserController@getNotificationSettings');
+	Route::post('/notifications', 'UserController@sendNotifications');
+	Route::get('/getuserreportlist', 'UserController@getUserReportList');
+	Route::post('/user/report', 'UserController@reportUser');
+
 	Route::get('/payment/methods', 'PaymentController@getMethods');
 	Route::post('/payment/methods', 'PaymentController@addMethod');
 	Route::post('/payment/methods/delete', 'PaymentController@deleteMethod');

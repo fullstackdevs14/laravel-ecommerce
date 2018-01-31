@@ -2483,7 +2483,7 @@ class ImageController extends Controller
                  ->orderBy('reports.created_at')
                  ->limit(10)
                  ->get();
-        $user_query = User_Report::leftJoin('users', 'users.id','=','user_reports.user_id')
+        $user_query = User_Report::leftJoin('users', 'users.id','=','user_reports.reported')
                  ->select('user_reports.content', 'user_reports.is_solved', 'users.*')
                  ->where('user_reports.is_solved','>','0')
                  ->orderBy('user_reports.created_at')

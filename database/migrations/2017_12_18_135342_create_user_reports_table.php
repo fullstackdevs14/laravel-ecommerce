@@ -16,7 +16,8 @@ class CreateUserReportsTable extends Migration
         if(!Schema::hasTable('user_reports'))
          Schema::create('user_reports', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('user_id');
+            $table->integer('reporter')->unsigned();
+            $table->integer('reported')->unsigned();
             $table->text('content');
             $table->boolean('is_solved')->default(0);
             $table->timestamps();
