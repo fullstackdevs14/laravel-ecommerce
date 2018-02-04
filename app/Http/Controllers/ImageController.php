@@ -1412,38 +1412,6 @@ class ImageController extends Controller
         ], 200);
     }
 
-    public function sendDiamond(Request $request)
-    {
-        $receiver_id = $request->input('uploader_id');
-        $diamond = $request->input('amount');
-
-        $sender = $request->user;
-        if ($sender->diamond < $diamond) {
-            return Response()->json([
-                'error' => 'not_enough_diamonds'
-            ], 400); 
-        }
-
-        $receiver = User::find($receiver_id);
-
-            // if receiver not exist in database
-        if(!$receiver)
-        {
-            return Response()->json([
-                'result' => 0
-                ], 201);
-        }
-
-        $sender->diamond -= $diamond;
-        $receiver->diamond += $diamond;
-        $sender->save();
-        $receiver->save();
-
-        return Response()->json([
-            'result' => 1
-            ], 200); 
-    }
-
     public function downloadWallpaper(Request $request)
     {
 

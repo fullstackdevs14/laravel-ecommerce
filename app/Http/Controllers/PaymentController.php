@@ -7,6 +7,7 @@ use JWTAuth;
 use \Stripe\Charge;
 use \Stripe\Stripe;
 use App\Models\Payment\PaymentMethod;
+use App\Models\Payment\Transaction;
 use App\Models\Payment\PaymentMethodStripe;
 use App\Models\User\User_Email;
 use App\User;
@@ -137,6 +138,82 @@ class PaymentController extends Controller
         ]);
     }
 
+    public function sendDiamond(Request $request)
+    {
+        $receiver_id = $request->input('receiver');
+        $diamond = $request->input('amount');
+        $is_msg = $request->input('is_msg');
+        $ip = $request->input('ip_address');
+
+        $sender = $request->user;
+        if ($sender->diamond < $diamond) {
+            return Response()->json([
+                'error' => 'not_enough_diamonds'
+            ], 400); 
+        }
+
+        $receiver = User::find($receiver_id);
+
+            // if receiver not exist in database
+        if(!$receiver)
+        {
+            return Response()->json([
+                'result' => 0
+            ], 201);
+        }
+
+        $sender->diamond -= $diamond;
+        $sender->save();
+
+        $transaction = new Transaction();
+        $transaction->type = 1;
+        $transaction->sender = $sender->id;
+        $transaction->receiver = $receiver->id;
+        $transaction->value = $diamond;
+        $transaction->ip_address = $ip;
+        
+        if ($is_msg) {
+            $transaction->status = 0;
+        } else {
+            $transaction->status = 1;
+            $receiver->diamond += $diamond;
+            $receiver->save();
+        }
+
+        $transaction->save();
+        
+        return Response()->json([
+            'transaction' => $transaction->id,
+            'success' => 1
+        ]);
+    }
+
+    public function collectDiamond(Request $request) {
+        $tid = $request->input('tid');
+
+        $transaction = Transaction::find($tid);
+        if ($transaction) {
+            if ($transaction->status == 1) {
+                return $this->fail('You have already collected the diamonds.');
+            }
+
+            if ($transaction->receiver != $request->user->id) {
+                return $this->fail('Invalid transaction');
+            }
+
+            $receiver = User::find($transaction->receiver);
+            $receiver->diamond += $transaction->value;
+            $receiver->save();
+
+            $transaction->status = 1;
+            $transaction->save();
+
+            return $this->success();
+        }
+
+        return $this->fail('Transaction not found');
+    }
+
     private function success() {
         return Response()->json([
             'success' => 1
@@ -149,20 +226,4 @@ class PaymentController extends Controller
             'message' => $msg
         ]);
     }
-
-    // public function allCustomers(Request $request) {
-    //     return Response()->json([
-    //         'list' => PaymentMethodStripe::allCustomers()
-    //     ]);
-    // }
-
-    // public function deleteCustomer(Request $request) {
-    //     PaymentMethodStripe::deleteCustomer(
-    //         $request->input('customer_id')
-    //     );
-
-    //     return Response()->json([
-    //         'success' => 1
-    //     ]);
-    // }
 }

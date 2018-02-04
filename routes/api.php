@@ -424,8 +424,6 @@ Route::middleware(['jwt.auth', 'user.blocked'])->group(function() {
 	Route::post('/payment/methods/delete', 'PaymentController@deleteMethod');
 	Route::post('/payment/purchase', 'PaymentController@buyDiamonds');
 	Route::get('/payment/transactions', 'PaymentController@getTransactions');
-
-	Route::post('/image/senddiamond', [
-		'uses' => 'ImageController@sendDiamond'
-	]);
+	Route::post('/payment/diamonds/send', 'PaymentController@sendDiamond');
+	Route::post('/payment/diamonds/collect', 'PaymentController@collectDiamond');
 });
